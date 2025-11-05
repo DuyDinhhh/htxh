@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void {
         Schema::create('feedback', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->foreignId('device_id')->constrained('devices');
-            $table->foreignId('service_id')->constrained('services');
-            $table->foreignId('user_id')->constrained('users');
+            $table->string('device_id')->nullable();
+            $table->integer('service_id')->nullable();
+            $table->integer('ticket_id')->nullable();;
             $table->integer('value');
             $table->timestamps();
             $table->softDeletes();

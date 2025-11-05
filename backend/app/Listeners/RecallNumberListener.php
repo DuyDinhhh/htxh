@@ -44,8 +44,15 @@ class RecallNumberListener
             ];
             $mqtt = MQTT::connection('publisher');
             $mqtt->publish("responsenumber", json_encode($message));
-            // $mqtt->publish("response-recall-number", json_encode($message));
+            activity()
+                ->useLog('mqtt')  
+                ->event('response')   
+                ->withProperties([
+                    'message' => $message,  
+                ])
+                ->log('responsenumber');
             $mqtt->disconnect();
+            $this->logMqttEvent('response', 'responsenumber', json_encode($message));
 
             $ticket->status = "processing";
             $ticket->touch(); 
@@ -57,8 +64,20 @@ class RecallNumberListener
             ];
             $mqtt = MQTT::connection('publisher');
             $mqtt->publish("responsenumber", json_encode($message));
+            $this->logMqttEvent('response', 'responsenumber', json_encode($message));
+
             // $mqtt->publish("response-recall-number", json_encode($message));
             $mqtt->disconnect();
         }
+    }
+    private function logMqttEvent($event, $topic, $message)
+    {
+        activity()
+            ->useLog('mqtt')  
+            ->event($event)   
+            ->withProperties([
+                'message' => $message,  
+            ])
+            ->log($topic);
     }
 }

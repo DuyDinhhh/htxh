@@ -25,9 +25,7 @@ function StatusBadge({ status }) {
   if (s.includes("skipped")) {
     return <span className={`${base} bg-red-50 text-red-700`}>Bỏ qua</span>;
   }
-  return (
-    <span className={`${base} bg-gray-50 text-gray-700`}>-{/* Unknown */}</span>
-  );
+  return <span className={`${base} bg-gray-50 text-gray-700`}>-</span>;
 }
 
 function PaginationButton({
@@ -65,21 +63,24 @@ function PaginationButton({
   );
 }
 
-const SummaryCard = ({ title, value, icon, bg = "bg-white" }) => {
-  return (
-    <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm text-gray-500">{title}</div>
-          <div className="text-2xl font-bold text-gray-900 mt-2">{value}</div>
-        </div>
-        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-          {icon}
+const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
+  <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <div className="text-sm text-gray-500">{title}</div>
+        {typeof today === "number" && (
+          <div className="text-2xl font-bold text-gray-900 mt-2">{today}</div>
+        )}
+        <div className="mt-1 text-xs text-gray-500">
+          Tất cả: <span className="font-semibold">{value}</span>
         </div>
       </div>
+      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+        {icon}
+      </div>
     </div>
-  );
-};
+  </div>
+);
 
 function formatDate(dt) {
   if (!dt) return "";
@@ -94,6 +95,18 @@ const TicketManagement = () => {
   const [services, setServices] = useState([]);
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("");
+
+  const [quickview, setQuickview] = useState({
+    total: 0,
+    totaltoday: 0,
+    waiting: 0,
+    waitingtoday: 0,
+    called: 0,
+    calledtoday: 0,
+    skipped: 0,
+    skippedtoday: 0,
+  });
 
   const [pagination, setPagination] = useState({
     current_page: 1,
@@ -139,11 +152,12 @@ const TicketManagement = () => {
         date_from: dateFrom,
         date_to: dateTo,
         sort,
+        status,
       };
 
       const response = await TicketService.index(page, params);
+      console.log("Ticket: ", response);
       const data = response.ticket;
-      console.log(data);
       const items = data?.data || data || [];
 
       setTickets(items);
@@ -155,6 +169,20 @@ const TicketManagement = () => {
         from: data?.from || (items.length ? 1 : 0),
         to: data?.to || items.length || 0,
       });
+
+      if (response.quickview) {
+        const q = response.quickview;
+        setQuickview({
+          total: Number(q.total ?? 0),
+          totaltoday: Number(q.totaltoday ?? 0),
+          waiting: Number(q.waiting ?? 0),
+          waitingtoday: Number(q.waitingtoday ?? 0),
+          called: Number(q.called ?? 0),
+          calledtoday: Number(q.calledtoday ?? 0),
+          skipped: Number(q.skipped ?? 0),
+          skippedtoday: Number(q.skippedtoday ?? 0),
+        });
+      }
     } catch (err) {
       setTickets([]);
       setPagination({
@@ -178,9 +206,12 @@ const TicketManagement = () => {
   }, []);
 
   useEffect(() => {
-    fetchTickets(1);
-  }, [serviceId, deviceId, dateFrom, dateTo, sort]);
+    const timer = setTimeout(() => {
+      fetchTickets(1);
+    }, 200);
 
+    return () => clearTimeout(timer);
+  }, [serviceId, deviceId, dateFrom, dateTo, sort, status]);
   const handlePageChange = (newPage) => {
     if (
       newPage >= 1 &&
@@ -215,6 +246,7 @@ const TicketManagement = () => {
         date_from: dateFrom,
         date_to: dateTo,
         sort,
+        status,
       };
       const response = await TicketService.export(params);
 
@@ -233,17 +265,8 @@ const TicketManagement = () => {
     }
   };
 
-  const totalTickets = pagination.total || tickets.length;
-  const waitingCount = tickets.filter((t) =>
-    (t.status || "").toString().toLowerCase().includes("waiting")
-  ).length;
-  const calledCount = tickets.filter((t) =>
-    (t.status || "").toString().toLowerCase().includes("called")
-  ).length;
-
   return (
     <div className="w-full px-8 py-8">
-      {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900">
@@ -251,6 +274,12 @@ const TicketManagement = () => {
           </h2>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            className="bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center"
+          >
+            <span className="ml-2">Xuất Excel</span>
+          </button>
           <Link
             to="/ticket/create"
             onClick={(e) => {
@@ -276,8 +305,9 @@ const TicketManagement = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <SummaryCard
-          title="Total Tickets"
-          value={totalTickets}
+          title="Tổng hợp"
+          value={quickview.total}
+          today={quickview.totaltoday}
           icon={
             <svg
               className="w-6 h-6 text-red-500"
@@ -291,7 +321,8 @@ const TicketManagement = () => {
         />
         <SummaryCard
           title="Đang chờ"
-          value={waitingCount}
+          value={quickview.waiting}
+          today={quickview.waitingtoday}
           icon={
             <svg
               className="w-6 h-6 text-yellow-500"
@@ -305,7 +336,8 @@ const TicketManagement = () => {
         />
         <SummaryCard
           title="Đã gọi"
-          value={calledCount}
+          value={quickview.called}
+          today={quickview.calledtoday}
           icon={
             <svg
               className="w-6 h-6 text-green-500"
@@ -318,10 +350,24 @@ const TicketManagement = () => {
             </svg>
           }
         />
+        <SummaryCard
+          title="Bỏ qua"
+          value={quickview.skipped}
+          today={quickview.skippedtoday}
+          icon={
+            <svg
+              className="w-6 h-6 text-gray-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <rect x="3" y="4" width="18" height="14" rx="2" ry="2"></rect>
+            </svg>
+          }
+        />
       </div>
 
       <div className="bg-white rounded-lg overflow-hidden shadow">
-        {/* Filters */}
         <div className="p-6 border-b">
           <div className="flex flex-wrap gap-3 items-center">
             <select
@@ -332,7 +378,8 @@ const TicketManagement = () => {
               <option value="">-- Tất cả dịch vụ --</option>
               {services.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {svc.name}
+                  {/* {svc.name} */}
+                  {svc.name} {svc.deleted_at ? "(Đã xoá)" : ""}
                 </option>
               ))}
             </select>
@@ -345,9 +392,22 @@ const TicketManagement = () => {
               <option value="">-- Tất cả thiết bị --</option>
               {devices.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {svc.name}
+                  {/* {svc.name} */}
+                  {svc.name} {svc.deleted_at ? "(Đã xoá)" : ""}
                 </option>
               ))}
+            </select>
+
+            <select
+              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 min-w-[180px]"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">-- Tất cả trạng thái --</option>
+              <option value="waiting">Đang chờ</option>
+              <option value="called">Đã gọi</option>
+              <option value="processing">Đang xử lí</option>
+              <option value="skipped">Bỏ qua</option>
             </select>
 
             <input
@@ -373,20 +433,13 @@ const TicketManagement = () => {
               <option value="oldest">Cũ nhất</option>
             </select>
 
-            <button
+            {/* <button
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
               onClick={() => fetchTickets(1)}
             >
               Lọc
-            </button>
-
+            </button> */}
             <div className="flex-1" />
-            <button
-              onClick={handleExport}
-              className="bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center"
-            >
-              <span className="ml-2">Xuất Excel</span>
-            </button>
           </div>
         </div>
 
@@ -409,6 +462,9 @@ const TicketManagement = () => {
                   </th>
                   <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
                     Ngày tạo
+                  </th>
+                  <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
+                    Ngày cập nhật
                   </th>
                 </tr>
               </thead>
@@ -435,16 +491,21 @@ const TicketManagement = () => {
                         {item.ticket_number}
                       </td>
                       <td className="p-4 text-center text-sm font-semibold text-gray-600">
-                        {item.device?.name}
+                        {item.device_with_trashed?.name || "-"}
                       </td>
                       <td className="p-4 text-center text-sm font-semibold text-gray-800 max-w-[420px]">
-                        {item.service?.name || "-"}
+                        {item.service_with_trashed?.name || "-"}
                       </td>
                       <td className="p-4 text-center">
                         <StatusBadge status={item.status} />
                       </td>
                       <td className="p-4 text-sm text-gray-600 text-center">
                         {formatDate(item.created_at)}
+                      </td>
+                      <td className="p-4 text-sm text-gray-600 text-center">
+                        {item.created_at == item.updated_at
+                          ? "-"
+                          : formatDate(item.updated_at)}
                       </td>
                     </tr>
                   ))

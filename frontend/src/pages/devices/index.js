@@ -116,7 +116,12 @@ const DeviceManagement = () => {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Pagination states
+  const [quickview, setQuickview] = useState({
+    total: 0,
+    totalOnline: 0,
+    totalOffline: 0,
+  });
+
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -131,6 +136,7 @@ const DeviceManagement = () => {
     try {
       const response = await DeviceService.index(page);
       const data = response.devices;
+      console.log(data);
       setDevices(data?.data || []);
       setPagination({
         current_page: data?.current_page || 1,
@@ -140,6 +146,13 @@ const DeviceManagement = () => {
         from: data?.from || 0,
         to: data?.to || 0,
       });
+      if (response.quickview) {
+        setQuickview({
+          total: Number(response.quickview.total ?? 0),
+          totalOnline: Number(response.quickview.totalOnline ?? 0),
+          totalOffline: Number(response.quickview.totalOffline ?? 0),
+        });
+      }
     } catch (err) {
       setDevices([]);
       const errorMessage =
@@ -190,14 +203,13 @@ const DeviceManagement = () => {
     }
   };
 
-  const totalDevices = pagination.total || devices.length;
-  const activeCount = devices.filter((d) =>
-    (d.status || "").toString().toLowerCase().includes("active")
-  ).length;
-
-  const inactiveCount = devices.filter((d) =>
-    (d.status || "").toString().toLowerCase().includes("inactive")
-  ).length;
+  function formatDate(dt) {
+    if (!dt) return "";
+    const d = new Date(dt);
+    return `${d.toLocaleTimeString("vi-VN")} ${d.getDate()}/${
+      d.getMonth() + 1
+    }/${d.getFullYear()}`;
+  }
 
   return (
     <div className="w-full px-8 py-8">
@@ -209,10 +221,10 @@ const DeviceManagement = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <SummaryCard
-          title="Total Devices"
-          value={totalDevices}
+          title="Tổng số thiết bị"
+          value={quickview.total}
           icon={
             <svg
               className="w-6 h-6 text-red-500"
@@ -225,8 +237,8 @@ const DeviceManagement = () => {
           }
         />
         <SummaryCard
-          title="Active"
-          value={activeCount}
+          title="Online"
+          value={quickview.totalOnline}
           icon={
             <svg
               className="w-6 h-6 text-green-500"
@@ -239,10 +251,9 @@ const DeviceManagement = () => {
             </svg>
           }
         />
-
         <SummaryCard
-          title="Inactive"
-          value={inactiveCount}
+          title="Offline"
+          value={quickview.totalOffline}
           icon={
             <svg
               className="w-6 h-6 text-gray-400"
@@ -273,6 +284,9 @@ const DeviceManagement = () => {
                   </th>
                   <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
                     Trạng thái
+                  </th>
+                  <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
+                    Ngày cập nhật
                   </th>
                   <th className="text-right text-md font-semibold text-gray-500 pb-3 px-4">
                     Thao tác
@@ -319,6 +333,9 @@ const DeviceManagement = () => {
                             Offline
                           </span>
                         )}
+                      </td>
+                      <td className="p-4 text-sm  text-gray-800">
+                        {formatDate(item.updated_at)}
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">

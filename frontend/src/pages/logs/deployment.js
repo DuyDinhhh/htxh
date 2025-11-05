@@ -80,14 +80,14 @@ const RowJSON = ({ json }) => {
   );
 };
 
-const ActivityLog = () => {
+const DeploymentLog = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // filters
   const [logName, setLogName] = useState("");
   const [event, setEvent] = useState("");
-  const [subjectId, setSubjectId] = useState("");
+
   const [causerType, setCauserType] = useState("");
   const [causerId, setCauserId] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -108,7 +108,7 @@ const ActivityLog = () => {
   const buildParams = () => ({
     log_name: logName || undefined,
     event: event || undefined,
-    subject_id: subjectId || undefined,
+
     causer_type: causerType || undefined,
     causer_id: causerId || undefined,
     date_from: dateFrom || undefined,
@@ -122,7 +122,7 @@ const ActivityLog = () => {
   const fetchLogs = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await ActivityLogService.index(page, buildParams());
+      const res = await ActivityLogService.deployment(page, buildParams());
       const payload = res?.data ?? res;
       const items = payload?.data ?? [];
       setLogs(items);
@@ -145,7 +145,7 @@ const ActivityLog = () => {
         to: 0,
       }));
       console.log(e);
-      const msg = e?.response?.data?.message || "Lỗi khi tải Activity Logs";
+      const msg = e?.response?.data?.message || "Lỗi khi tải Deployment Logs";
       toast.error(msg, { autoClose: 800 });
     }
     setLoading(false);
@@ -158,17 +158,7 @@ const ActivityLog = () => {
   useEffect(() => {
     const t = setTimeout(() => fetchLogs(1), 250);
     return () => clearTimeout(t);
-  }, [
-    logName,
-    event,
-    subjectId,
-    causerType,
-    causerId,
-    dateFrom,
-    dateTo,
-    q,
-    sort,
-  ]);
+  }, [logName, event, causerType, causerId, dateFrom, dateTo, q, sort]);
 
   const getPageNumbers = () => {
     const { current_page, last_page } = pagination;
@@ -215,24 +205,18 @@ const ActivityLog = () => {
             onChange={(e) => setEvent(e.target.value)}
           >
             <option value="">-- event --</option>
-            <option value="created">created</option>
-            <option value="updated">updated</option>
-            <option value="deleted">deleted</option>
-            {/* <option value="restored">restored</option> */}
+            <option value="receive">receive</option>
+            <option value="connect">connect</option>
+            <option value="response">response</option>
           </select>
+
           {/* <input
-            className="px-3 py-2 rounded border"
-            placeholder="subject_type (FQN)"
-            value={subjectType}
-            onChange={(e) => setSubjectType(e.target.value)}
-          />
-          <input
             className="px-3 py-2 rounded border"
             placeholder="causer_type (FQN)"
             value={causerType}
             onChange={(e) => setCauserType(e.target.value)}
-          />
-          <input
+          /> */}
+          {/* <input
             className="px-3 py-2 rounded border"
             placeholder="causer_id"
             value={causerId}
@@ -281,7 +265,7 @@ const ActivityLog = () => {
                     #
                   </th>
                   <th className="text-left text-sm font-semibold text-gray-500 pb-3 px-4">
-                    Mô tả
+                    Topic
                   </th>
                   <th className="text-left text-sm font-semibold text-gray-500 pb-3 px-4">
                     Log name
@@ -289,9 +273,7 @@ const ActivityLog = () => {
                   <th className="text-left text-sm font-semibold text-gray-500 pb-3 px-4">
                     Event
                   </th>
-                  <th className="text-left text-sm font-semibold text-gray-500 pb-3 px-4">
-                    Subject
-                  </th>
+
                   {/* <th className="text-left text-sm font-semibold text-gray-500 pb-3 px-4">
                     Causer
                   </th> */}
@@ -330,19 +312,13 @@ const ActivityLog = () => {
                         <Badge color="gray">{log.log_name || "default"}</Badge>
                       </td>
                       <td className="p-4 text-sm text-gray-600">
-                        {log.event === "created" ? (
+                        {log.event ? (
                           <Badge color="blue">{log.event}</Badge>
-                        ) : log.event === "updated" ? (
-                          <Badge color="yellow">{log.event}</Badge>
-                        ) : log.event === "deleted" ? (
-                          <Badge color="red">{log.event}</Badge>
                         ) : (
                           <Badge>-</Badge>
                         )}
                       </td>
-                      <div className="p-4 text-xs items-center text-gray-600">
-                        {String(log.subject_id ?? "-")}
-                      </div>
+
                       <td className="p-4 text-xs text-gray-600">
                         {formatDate(log.created_at)}
                       </td>
@@ -389,4 +365,4 @@ const ActivityLog = () => {
   );
 };
 
-export default ActivityLog;
+export default DeploymentLog;

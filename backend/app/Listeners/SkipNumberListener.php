@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Carbon\Carbon;
 use App\Models\Ticket;
+// use Spatie\Activitylog\Models\Activity;
 
 class SkipNumberListener
 {
@@ -27,12 +28,18 @@ class SkipNumberListener
         $clientId = 'publish-' . $data['device_id'];
         config(['mqtt-client.connections.default.client_id' => $clientId]);
         $today = Carbon::today()->format('Y-m-d'); 
-
-        Ticket::where('device_id', $data['device_id'])
+       
+        $oldTicket = Ticket::where('device_id', $data['device_id'])
         ->where('status', 'processing')
         ->whereDate('created_at', $today)
-        ->update(['status' => 'skipped']);
+        ->first();
         
+        if($oldTicket){
+            $oldTicket->device_id = null;            
+            $oldTicket->status = "skipped";            
+            $oldTicket->created_at = now();
+            $oldTicket->save();
+        }
         event(new \App\Events\NumberRequest($data));        
     }
 }

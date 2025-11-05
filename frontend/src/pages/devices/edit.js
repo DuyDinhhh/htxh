@@ -14,7 +14,7 @@ const DeviceEdit = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
-  const [deviceName, setDeviceName] = useState(""); // <-- NEW
+  const [deviceName, setDeviceName] = useState("");
 
   useEffect(() => {
     const fetchDeviceAndServices = async () => {
@@ -23,19 +23,20 @@ const DeviceEdit = () => {
         const deviceRes = await DeviceService.show(id);
         setDevice(deviceRes.device || deviceRes);
 
-        // Get all services for selection
         const serviceRes = await ServiceService.list();
-        setServices(serviceRes.services || []);
+        const validServices = (serviceRes.services || []).filter(
+          (service) => !service.deleted_at
+        );
+        setServices(validServices || []);
 
         const assignedServices =
           deviceRes.device?.services || deviceRes.services || [];
 
         const initialSelected = {};
         assignedServices.forEach((srv) => {
-          initialSelected[srv.id] = srv.pivot.priority_number || 1;
+          initialSelected[srv.id] = srv.pivot?.priority_number || 1;
         });
         setSelectedServices(initialSelected);
-
         setDeviceName(deviceRes.device?.name || deviceRes.name || "");
       } catch (err) {
         toast.error("Lỗi khi tải thông tin thiết bị hoặc dịch vụ.", {
@@ -49,20 +50,17 @@ const DeviceEdit = () => {
 
   const handleServiceCheck = (serviceId) => {
     setSelectedServices((prev) => {
-      // Toggle the checkbox
       if (prev[serviceId]) {
         const copy = { ...prev };
         delete copy[serviceId];
         return copy;
-      } else {
-        return { ...prev, [serviceId]: 1 }; // default priority 1
       }
+      return { ...prev, [serviceId]: 1 };
     });
     setErrors({});
   };
-  const handleDeviceNameChange = (e) => {
-    setDeviceName(e.target.value);
-  };
+
+  const handleDeviceNameChange = (e) => setDeviceName(e.target.value);
 
   const handlePriorityChange = (serviceId, value) => {
     setSelectedServices((prev) => ({
@@ -73,10 +71,10 @@ const DeviceEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (Object.keys(selectedServices).length === 0) {
-      setErrors({ service: "Vui lòng chọn ít nhất một dịch vụ để gán." });
-      return;
-    }
+    // if (Object.keys(selectedServices).length === 0) {
+    //   setErrors({ service: "Vui lòng chọn ít nhất một dịch vụ để gán." });
+    //   return;
+    // }
     setSaving(true);
     try {
       const assignData = Object.entries(selectedServices).map(
@@ -108,24 +106,28 @@ const DeviceEdit = () => {
     }
   };
 
+  /* ---------- UI ---------- */
+
   if (loading) {
     return (
-      <div className="w-full px-8 py-10 flex items-center justify-center">
-        <span className="text-gray-700 dark:text-gray-200 text-lg">
-          Đang tải...
-        </span>
+      <div className="w-full px-8 py-8">
+        <div className="bg-white border rounded-lg shadow p-8 text-center">
+          <div className="text-gray-600">Đang tải...</div>
+        </div>
       </div>
     );
   }
 
   if (!device) {
     return (
-      <div className="w-full px-8 py-10 flex items-center justify-center">
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-10 text-center">
-          <div className="text-gray-200 text-lg">Không tìm thấy thiết bị.</div>
+      <div className="w-full px-8 py-8">
+        <div className="bg-white border rounded-lg shadow p-10 text-center">
+          <div className="text-gray-800 text-lg mb-4">
+            Không tìm thấy thiết bị.
+          </div>
           <button
             onClick={() => navigate(-1)}
-            className="mt-6 bg-gray-600 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded-md shadow"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition"
           >
             Quay lại
           </button>
@@ -135,105 +137,149 @@ const DeviceEdit = () => {
   }
 
   return (
-    <div className="w-full px-8 py-10">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full px-8 py-8">
+      {/* Header + Breadcrumb */}
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-3xl font-extrabold text-gray-900">
             Gán Dịch vụ cho Thiết bị
           </h2>
-          <nav className="text-sm text-gray-400 mt-2">
+          <nav className="text-sm text-gray-500 mt-2">
             <Link
               to="/devices"
-              className="text-blue-400 hover:text-blue-300 underline"
+              className="text-red-600 hover:underline hover:text-red-700"
             >
               Thiết bị
             </Link>{" "}
-            <span className="text-blue-300">{device.name}</span> &gt; Gán dịch
-            vụ
+            <span className="mx-1">/</span>
+            <span className="text-gray-700 font-medium">{device.name}</span>
+            <span className="mx-1">/</span>
+            <span className="text-gray-700">Gán dịch vụ</span>
           </nav>
         </div>
       </div>
+
+      {/* Card */}
       <form onSubmit={handleSubmit}>
-        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg border border-gray-700 p-6">
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Tên thiết bị
-            </label>
-            <input
-              type="text"
-              value={deviceName}
-              onChange={handleDeviceNameChange}
-              className="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700 text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 mb-2"
-              placeholder="Nhập tên thiết bị"
-            />
-            <div className="text-md font-semibold text-gray-200">
-              ID: {device.id}
-            </div>
-          </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Chọn dịch vụ để gán
-            </label>
-            <div className="space-y-3">
-              {services.map((service) => (
-                <div key={service.id} className="flex items-center gap-4">
-                  <input
-                    type="checkbox"
-                    id={`service-checkbox-${service.id}`}
-                    checked={!!selectedServices[service.id]}
-                    onChange={() => handleServiceCheck(service.id)}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+        <div className="bg-white rounded-lg overflow-hidden shadow w-11/12 ">
+          <div className="p-6 space-y-8">
+            {/* Device Info */}
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Thông tin thiết bị
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
                   <label
-                    htmlFor={`service-checkbox-${service.id}`}
-                    className="text-gray-200"
+                    htmlFor="deviceName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    {service.name}
+                    Tên thiết bị
                   </label>
-                  {selectedServices[service.id] && (
-                    <>
-                      <span className="text-gray-200">Độ ưu tiên: </span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={99}
-                        value={selectedServices[service.id]}
-                        onChange={(e) =>
-                          handlePriorityChange(service.id, e.target.value)
-                        }
-                        className="ml-3 w-20 px-2 py-1 rounded bg-gray-900 border border-gray-700 text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="Priority"
-                      />
-                    </>
-                  )}
+                  <input
+                    id="deviceName"
+                    type="text"
+                    value={deviceName}
+                    onChange={handleDeviceNameChange}
+                    placeholder="Nhập tên thiết bị"
+                    className="w-full px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
                 </div>
-              ))}
-            </div>
-            {errors.service && (
-              <span className="text-xs text-red-400 mt-1">
-                {errors.service}
-              </span>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-1">
+                    Mã thiết bị
+                  </div>
+                  <div className="h-[38px] flex items-center px-3 border rounded-md bg-gray-50 text-gray-700">
+                    ID: {device.id}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Services Selection */}
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Chọn dịch vụ để gán
+              </h3>
+
+              <div className="space-y-3">
+                {services.map((service) => {
+                  const checked = !!selectedServices[service.id];
+                  return (
+                    <div
+                      key={service.id}
+                      className={`border rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 transition-colors ${
+                        checked
+                          ? "bg-red-50 border-red-200"
+                          : "bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id={`srv-${service.id}`}
+                          checked={checked}
+                          onChange={() => handleServiceCheck(service.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                        <label
+                          htmlFor={`srv-${service.id}`}
+                          className="text-sm md:text-base font-medium text-gray-800"
+                        >
+                          {service.name}
+                        </label>
+                      </div>
+
+                      {checked && (
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <span className="text-sm text-gray-600">
+                            Độ ưu tiên
+                          </span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={99}
+                            value={selectedServices[service.id]}
+                            onChange={(e) =>
+                              handlePriorityChange(service.id, e.target.value)
+                            }
+                            className="w-24 px-2 py-2 rounded-md border border-red-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            placeholder="1-99"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {errors.service && (
+                <p className="text-sm text-red-600 mt-2">{errors.service}</p>
+              )}
+            </section>
+
+            {/* General error */}
+            {errors.general && (
+              <div className="text-sm text-red-600">{errors.general}</div>
             )}
           </div>
-          {/* Errors */}
-          {errors.general && (
-            <div className="mb-3 text-red-400 text-sm">{errors.general}</div>
-          )}
-          {/* Buttons */}
-          <div className="flex justify-end gap-2 border-t border-gray-700 pt-5">
+
+          {/* Footer Actions */}
+          <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/devices")}
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition"
+            >
+              Quay lại
+            </button>
             <button
               type="submit"
               disabled={saving}
-              className="bg-green-500 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-md shadow disabled:opacity-60"
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 transition"
             >
               {saving ? "Đang lưu..." : "Lưu"}
             </button>
-            <Link
-              to="/devices"
-              className="bg-gray-600 hover:bg-gray-500 text-white font-semibold px-6 py-2 rounded-md shadow"
-            >
-              Quay lại
-            </Link>
           </div>
         </div>
       </form>

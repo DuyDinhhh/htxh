@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import ServiceService from "../../services/serviceService"; // Uncomment and implement
+import ServiceService from "../../services/serviceService";
 
 const ServiceCreate = () => {
   const navigate = useNavigate();
@@ -15,21 +15,17 @@ const ServiceCreate = () => {
     color: "#8B4513",
   });
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Validate
   const validate = () => {
     const v = {};
     if (!form.name?.trim()) v.name = "Tên dịch vụ không được để trống";
-    // if (!form.location?.trim()) v.location = "Vị trí không được để trống";
     return v;
   };
 
-  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -41,8 +37,6 @@ const ServiceCreate = () => {
     try {
       setSaving(true);
       const res = await ServiceService.store(form);
-
-      console.log(res);
 
       if (
         res &&
@@ -70,65 +64,64 @@ const ServiceCreate = () => {
   };
 
   return (
-    <div className="w-full px-8 py-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full px-8 py-8">
+      {/* Header + Breadcrumb */}
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Tạo Dịch vụ</h2>
-          <nav className="text-sm text-gray-400 mt-2">
+          <h2 className="text-3xl font-extrabold text-gray-900">Tạo Dịch vụ</h2>
+          <nav className="text-sm text-gray-500 mt-2">
             <Link
               to="/services"
-              className="underline text-blue-400 hover:text-blue-300"
+              className="text-red-600 hover:text-red-700 hover:underline"
             >
               Dịch vụ
-            </Link>{" "}
-            &gt; Tạo mới
+            </Link>
+            <span className="mx-1">/</span>
+            <span className="text-gray-700">Tạo mới</span>
           </nav>
         </div>
       </div>
 
-      {/* Card */}
-      <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg border border-gray-700">
+      <div className="bg-white rounded-lg overflow-hidden shadow">
         <form onSubmit={handleSubmit} className="p-6" autoComplete="off">
-          <div className="grid grid-cols-1 gap-6">
-            {/* Name */}
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block mb-1 text-sm font-medium text-gray-700">
                 Tên dịch vụ
               </label>
               <input
-                className="w-full rounded-md bg-gray-900 border border-gray-700 text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Nhập tên dịch vụ"
+                className="w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
               {errors.name && (
-                <div className="text-red-400 text-xs mt-1">{errors.name}</div>
+                <div className="text-red-600 text-sm mt-1">{errors.name}</div>
               )}
             </div>
 
+            {/* Code */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700">
                 Mã dịch vụ
               </label>
               <input
-                className="w-full rounded-md bg-gray-900 border border-gray-700 text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
                 name="queue_number"
                 value={form.queue_number}
                 onChange={handleChange}
                 placeholder="Nhập mã dịch vụ"
+                className="w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
               {errors.queue_number && (
-                <div className="text-red-400 text-xs mt-1">
+                <div className="text-red-600 text-sm mt-1">
                   {errors.queue_number}
                 </div>
               )}
             </div>
 
-            {/* Color Picker */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-300">
+              <label className="block mb-1 text-sm font-medium text-gray-700">
                 Màu sắc dịch vụ
               </label>
               <div className="flex items-center gap-3">
@@ -137,36 +130,38 @@ const ServiceCreate = () => {
                   name="color"
                   value={form.color}
                   onChange={handleChange}
-                  className="w-12 h-12 p-0 border-2 border-gray-700 rounded-md bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-12 h-12 p-0 border-2 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                   style={{ minWidth: "3rem", minHeight: "3rem" }}
                 />
-                <span className="text-gray-200 text-sm">{form.color}</span>
-                <div
-                  className="w-8 h-8 rounded-full border border-gray-600"
+                <span className="text-gray-700 text-sm">{form.color}</span>
+                <span
+                  className="inline-block w-8 h-8 rounded-full border border-gray-300"
                   style={{ backgroundColor: form.color }}
-                ></div>
+                />
               </div>
             </div>
           </div>
 
+          {/* General error */}
           {errors.general && (
-            <div className="pt-4 text-red-400 text-sm">{errors.general}</div>
+            <div className="pt-4 text-red-600 text-sm">{errors.general}</div>
           )}
 
-          <div className="flex justify-end gap-2 border-t border-gray-700 mt-8 pt-5">
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-4 py-2 rounded-md shadow disabled:opacity-60"
-            >
-              {saving ? "Đang lưu..." : "Lưu"}
-            </button>
+          {/* Footer */}
+          <div className="px-0 mt-8 pt-5 border-t border-gray-200 flex items-center justify-end gap-2">
             <Link
               to="/services"
-              className="bg-gray-600 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded-md shadow"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition"
             >
               Hủy
             </Link>
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 transition"
+            >
+              {saving ? "Đang lưu..." : "Lưu"}
+            </button>
           </div>
         </form>
       </div>

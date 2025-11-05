@@ -14,6 +14,7 @@
         "php-mqtt/laravel-client": "^1.6",
         "phpoffice/phpspreadsheet": "^5.1",
         "pusher/pusher-php-server": "^7.2",
+        "spatie/laravel-activitylog": "^4.10",
         "tymon/jwt-auth": "^2.2"
     },
     "require-dev": {

@@ -1,127 +1,33 @@
-// import React, { useEffect, useRef, useState } from "react";
-// import TicketService from "../../services/ticketService";
-// import { toast } from "react-toastify";
-
-// const REFRESH_MS = 1000;
-
-// export default function QueueDisplayWithTTS() {
-//   const [tickets, setTickets] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const pollRef = useRef(null);
-
-//   const fetchTickets = async (showLoading = false) => {
-//     if (showLoading) setLoading(true);
-//     try {
-//       const response = await TicketService.queue_display();
-//       const data = response.tickets;
-//       setTickets(data || []);
-//     } catch (err) {
-//       console.error(err);
-//       toast.error("Không thể tải dữ liệu quầy.");
-//     } finally {
-//       if (showLoading) setLoading(false);
-//     }
-//   };
-
-//   // Run initial load with spinner
-//   useEffect(() => {
-//     fetchTickets(true);
-//     pollRef.current = setInterval(fetchTickets, REFRESH_MS);
-//     return () => clearInterval(pollRef.current);
-//   }, []);
-
-//   return (
-//     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
-//       <header className="w-full bg-[#B3AAAA] flex-none flex flex-col justify-center items-center py-2">
-//         <img
-//           src="/images/agribank-logo.png"
-//           alt="Header Logo"
-//           className="h-20 w-96 object-contain"
-//         />
-//         <div className="text-lg text-[#b10730] font-semibold text-center uppercase">
-//           Ngân hàng Agribank - Chi nhánh Bắc Đồng Nai
-//         </div>
-//       </header>
-
-//       <main className="flex-1 flex items-center justify-center px-8 w-full">
-//         {loading ? (
-//           <div className="text-center text-gray-300">Đang tải dữ liệu...</div>
-//         ) : !tickets.length ? (
-//           <div className="text-center text-gray-300">
-//             Không có dữ liệu quầy.
-//           </div>
-//         ) : (
-//           <div className="w-full max-w-3xl">
-//             <div className="overflow-x-auto bg-white rounded-lg shadow border-2 border-[#b10730]">
-//               <table className="min-w-[520px] w-full table-auto border-collapse">
-//                 <thead className="bg-[#B3AAAA] text-black">
-//                   <tr>
-//                     <th className="px-4 py-3 text-center border border-[#b10730]">
-//                       Số thứ tự
-//                     </th>
-//                     <th className="px-4 py-3 text-center border border-[#b10730]">
-//                       Quầy
-//                     </th>
-//                   </tr>
-//                 </thead>
-//                 <tbody className="text-gray-700">
-//                   {tickets.map((item, idx) => {
-//                     const isMostRecent = idx === 0; // highlight the newest called ticket
-//                     return (
-//                       <tr
-//                         key={item.id ?? idx}
-//                         className="odd:bg-white even:bg-[#FFF2F4]"
-//                       >
-//                         <td className="px-4 py-3 text-center border border-[#b10730]">
-//                           <span
-//                             className={`${
-//                               isMostRecent
-//                                 ? "text-[#b10730] font-bold"
-//                                 : "text-gray-700"
-//                             }`}
-//                           >
-//                             {item.ticket_number}
-//                           </span>
-//                         </td>
-//                         <td className="px-4 py-3 text-center font-bold border border-[#b10730]">
-//                           {item.device?.name}
-//                         </td>
-//                       </tr>
-//                     );
-//                   })}
-//                 </tbody>
-//               </table>
-//             </div>
-//           </div>
-//         )}
-//       </main>
-
-//       <footer className="w-full bg-[#B3AAAA] flex-none flex flex-col justify-center items-center py-4 overflow-hidden">
-//         <div
-//           className="text-lg text-[#b10730] font-semibold uppercase whitespace-nowrap"
-//           style={{
-//             display: "inline-block",
-//             animation: "marquee 10s linear infinite",
-//           }}
-//         >
-//           Kính chào quý khách, chúc quý khách một ngày tốt lành!
-//         </div>
-//       </footer>
-//     </div>
-//   );
-// }
-
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { echo } from "../../echo"; // make sure this is configured
+import { echo } from "../../echo";
+import ConfigService from "../../services/configService";
 
-const MAX_ROWS = 7; // 👈 keep only the 7 latest rows
+const MAX_ROWS = 7;
+const DEFAULT_BG = "#B3AAAA";
+
+const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
+const isValidHex = (val = "") =>
+  /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
+const normalizeHex = (val = "") => {
+  const v = (val || "").trim();
+  if (/^#([0-9A-Fa-f]{6})$/.test(v)) return v.toLowerCase();
+  if (/^#([0-9A-Fa-f]{3})$/.test(v)) {
+    const short = v.slice(1).split("");
+    return ("#" + short.map((c) => c + c).join("")).toLowerCase();
+  }
+  return v;
+};
+const safeColor = (val, fallback) =>
+  isValidHex(val) ? normalizeHex(val) : fallback;
 
 export default function QueueDisplayWithTTS() {
   const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingTickets, setLoadingTickets] = useState(true);
 
-  // ---- TTS state/refs ----
+  const [config, setConfig] = useState(null);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const voiceRef = useRef(null);
   const firstLoadRef = useRef(true);
@@ -129,15 +35,116 @@ export default function QueueDisplayWithTTS() {
   const prevTopIdRef = useRef(null);
   const prevTopUpdatedMsRef = useRef(0);
 
-  // --- Load voices (Web Speech API) ---
+  // ---------- Load CONFIG once ----------
+  useEffect(() => {
+    let mounted = true;
+    const loadConfig = async () => {
+      setLoadingConfig(true);
+      try {
+        const res = await ConfigService.index();
+        const cfg = res?.config || res || null;
+        if (!cfg) throw new Error("No config");
+
+        const bgTop =
+          safeColor(cfg?.bg_top_color, null) ||
+          safeColor(cfg?.color_top, DEFAULT_BG) ||
+          DEFAULT_BG;
+        const bgBottom =
+          safeColor(cfg?.bg_bottom_color, null) ||
+          safeColor(cfg?.color_bottom, DEFAULT_BG) ||
+          DEFAULT_BG;
+        const bgMiddle = safeColor(cfg?.bg_middle_color, DEFAULT_BG);
+
+        const tableHeader = safeColor(cfg?.table_header_color, "#f3f4f6");
+        const tableRowOdd = safeColor(cfg?.table_row_odd_color, "#ffffff");
+        const tableRowEven = safeColor(cfg?.table_row_even_color, "#fff2f4");
+
+        const tableText = safeColor(cfg?.table_text_color, "#000000");
+        const tableTextActive = safeColor(
+          cfg?.table_text_active_color,
+          "#ff0000"
+        );
+
+        const textTopColor = safeColor(cfg?.text_top_color, "#b10730");
+        const textBottomColor = safeColor(cfg?.text_bottom_color, "#b10730");
+
+        const photoUrl = cfg?.photo
+          ? isAbsoluteUrl(cfg.photo)
+            ? cfg.photo
+            : `/images/config/${cfg.photo}`
+          : null;
+
+        if (mounted) {
+          setConfig({
+            ...cfg,
+            bg_top_color: bgTop,
+            bg_bottom_color: bgBottom,
+            bg_middle_color: bgMiddle,
+            table_header_color: tableHeader,
+            table_row_odd_color: tableRowOdd,
+            table_row_even_color: tableRowEven,
+            table_text_color: tableText,
+            table_text_active_color: tableTextActive,
+            text_top_color: textTopColor,
+            text_bottom_color: textBottomColor,
+            photoUrl,
+            text_top: cfg?.text_top ?? cfg?.textTop ?? "",
+            text_bottom: cfg?.text_bottom ?? cfg?.textBottom ?? "",
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setConfig({
+            text_top: "Ngân hàng Agribank - Chi nhánh Bắc Đồng Nai",
+            bg_top_color: DEFAULT_BG,
+            text_bottom:
+              "Kính chào quý khách, chúc quý khách một ngày tốt lành!",
+            bg_bottom_color: DEFAULT_BG,
+            photoUrl: "/images/agribank-logo.png",
+            bg_middle_color: DEFAULT_BG,
+            table_header_color: "#f3f4f6",
+            table_row_odd_color: "#ffffff",
+            table_row_even_color: "#fff2f4",
+            table_text_color: "#000000",
+            table_text_active_color: "#ff0000",
+            text_top_color: "#b10730",
+            text_bottom_color: "#b10730",
+          });
+          toast.error("Không tải được cấu hình, dùng giá trị mặc định.", {
+            autoClose: 1000,
+          });
+        }
+      } finally {
+        if (mounted) setLoadingConfig(false);
+      }
+    };
+    loadConfig();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ---------- Voice pick ----------
   useEffect(() => {
     const pickVoice = () => {
       if (!window.speechSynthesis) return;
       const voices = window.speechSynthesis.getVoices?.() || [];
+      const vietnameseVoices = voices.filter(
+        (v) =>
+          v.lang?.toLowerCase().startsWith("vi-vn") && !v.name.includes("Linh") // Loại trừ bất kỳ giọng
+      );
+
       voiceRef.current =
-        voices.find((v) => v.lang?.toLowerCase().startsWith("vi")) ||
-        voices.find((v) => v.lang?.toLowerCase().startsWith("en")) ||
+        vietnameseVoices.find((v) => v.name.includes("Google Tiếng Việt")) ||
+        vietnameseVoices.find((v) => v.name.includes("Microsoft")) ||
+        vietnameseVoices[0] ||
         null;
+
+      console.log(
+        "🎙️ Using voice:",
+        voiceRef.current?.name,
+        voiceRef.current?.lang
+      );
     };
     pickVoice();
     if (window.speechSynthesis)
@@ -147,7 +154,6 @@ export default function QueueDisplayWithTTS() {
     };
   }, []);
 
-  // --- Speak helper ---
   const speak = (text) => {
     if (!ttsEnabled || !window.speechSynthesis || !text) return;
     try {
@@ -155,7 +161,7 @@ export default function QueueDisplayWithTTS() {
       const u = new SpeechSynthesisUtterance(text);
       if (voiceRef.current) u.voice = voiceRef.current;
       u.lang = voiceRef.current?.lang || "vi-VN";
-      u.rate = 0.7;
+      u.rate = 0.3;
       u.pitch = 1;
       window.speechSynthesis.speak(u);
     } catch (e) {
@@ -163,17 +169,16 @@ export default function QueueDisplayWithTTS() {
     }
   };
 
-  // --- Echo subscription only (no API) ---
+  // ---------- Echo channel for tickets ----------
   useEffect(() => {
     let firstEvent = true;
 
     const channel = echo
       .channel("queue.display")
       .listen(".ResponseNumberReceived", (e) => {
-        // Normalize payload
         const payload = e?.payload ?? {};
         const row = {
-          id: `${payload.device_id ?? ""}-${payload.number ?? ""}`, // stable id (no Date.now to allow matching)
+          id: `${payload.device_id ?? ""}-${payload.number ?? ""}`,
           ticket_number: payload.number ?? "",
           device: {
             id: payload.device_id ?? "",
@@ -199,25 +204,20 @@ export default function QueueDisplayWithTTS() {
           const idx = prev.findIndex((t) => key(t) === key(row));
 
           if (idx >= 0) {
-            // Already in list
             if (isRecall) {
-              // Update in place (do NOT change order)
               const next = [...prev];
               next[idx] = { ...next[idx], ...row };
               return next;
             } else {
-              // Normal new call for same number/device → move to top (optional)
               const updated = { ...prev[idx], ...row };
               const without = prev.filter((_, i) => i !== idx);
               return [updated, ...without].slice(0, MAX_ROWS);
             }
           } else {
-            // Not in list
             if (isRecall) {
               const next = [...prev, row];
               return next.slice(0, MAX_ROWS);
             } else {
-              // New call → prepend to top
               const next = [row, ...prev];
               return next.slice(0, MAX_ROWS);
             }
@@ -225,7 +225,7 @@ export default function QueueDisplayWithTTS() {
         });
 
         if (firstEvent) {
-          setLoading(false);
+          setLoadingTickets(false);
           firstEvent = false;
         }
       });
@@ -243,7 +243,6 @@ export default function QueueDisplayWithTTS() {
     };
   }, []);
 
-  // --- Announce when a NEW top ticket appears ---
   useEffect(() => {
     if (!tickets || tickets.length === 0) return;
 
@@ -273,23 +272,42 @@ export default function QueueDisplayWithTTS() {
       prevTopIdRef.current = topId;
       prevTopUpdatedMsRef.current = topUpdatedMs;
 
-      const ticketPart = String(top?.ticket_number ?? "")
+      const ticketPartRaw = String(top?.ticket_number ?? "")
         .replace(/\s+/g, " ")
         .trim();
+      const ticketPart = ticketPartRaw.split("").join("  ");
+
       let rawCounter = String(top?.device?.name ?? "")
         .replace(/\s+/g, " ")
         .trim();
       rawCounter = rawCounter.replace(/^qu(â|a)y\s*/i, "").trim();
-
-      speak(`Mời số ${ticketPart} đến ${rawCounter}.`);
+      const parts = rawCounter.split(" ");
+      const lastPart = parts[parts.length - 1];
+      speak(`Mời số ${ticketPart} đến quầy số ${lastPart}.`);
     }
-  }, [tickets]);
+  }, [tickets, ttsEnabled]);
 
-  // --- UI ---
+  const headerBg = config?.bg_top_color ?? config?.color_top ?? DEFAULT_BG;
+  const headerTextColor = config?.text_top_color ?? "#b10730";
+  const footerBg =
+    config?.bg_bottom_color ?? config?.color_bottom ?? DEFAULT_BG;
+  const footerTextColor = config?.text_bottom_color ?? headerTextColor;
+  const logoSrc = config?.photoUrl ?? "/images/agribank-logo.png";
+  const borderAccent = headerTextColor;
+  const tableRowOdd = config?.table_row_odd_color ?? "#ffffff";
+  const tableRowEven = config?.table_row_even_color ?? "#fff2f4";
+  const tableHeaderBg = config?.table_header_color ?? "#f3f4f6";
+  const tableTextColor = config?.table_text_color ?? "#000000";
+  const tableTextActive = config?.table_text_active_color ?? "#ff0000";
+
+  const isLoadingAll = loadingConfig || loadingTickets;
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
-      <header className="w-full bg-[#B3AAAA] flex-none flex flex-col justify-center items-center py-2 relative">
-        {/* sound toggle — top-right */}
+      <header
+        className="w-full flex-none flex flex-col justify-center items-center py-2 relative"
+        style={{ backgroundColor: headerBg }}
+      >
         <button
           onClick={() => {
             if (!ttsEnabled) {
@@ -299,14 +317,14 @@ export default function QueueDisplayWithTTS() {
             }
             setTtsEnabled((v) => !v);
           }}
-          className={`absolute top-2 right-2 px-3 py-1 rounded-xl text-sm font-semibold border shadow
-      ${
-        ttsEnabled
-          ? "bg-green-50 text-green-700 border-green-300"
-          : "bg-red-50 text-red-700 border-red-300"
-      }`}
+          className={`absolute top-2 right-2 px-3 py-1 rounded-xl text-sm font-semibold border shadow`}
           title={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
           aria-label={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
+          style={{
+            backgroundColor: ttsEnabled ? "#ecfdf5" : "#fff1f2",
+            color: ttsEnabled ? "#166534" : "#7f1d1d",
+            borderColor: ttsEnabled ? "#86efac" : "#fca5a5",
+          }}
         >
           {ttsEnabled ? (
             // Speaker ON icon
@@ -325,7 +343,7 @@ export default function QueueDisplayWithTTS() {
               />
             </svg>
           ) : (
-            // Speaker OFF (muted) icon
+            // Speaker OFF icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -344,17 +362,20 @@ export default function QueueDisplayWithTTS() {
         </button>
 
         <img
-          src="/images/agribank-logo.png"
+          src={logoSrc}
           alt="Header Logo"
-          className="h-20 w-96 object-contain"
+          className="h-20 w-96 mb-2 object-contain"
         />
-        <div className="text-lg text-[#b10730] font-semibold text-center uppercase">
-          Ngân hàng Agribank - Chi nhánh Bắc Đồng Nai
+        <div
+          className="text-lg font-semibold text-center uppercase"
+          style={{ color: headerTextColor }}
+        >
+          {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
         </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center px-8 w-full">
-        {loading ? (
+        {isLoadingAll ? (
           <div className="text-center text-gray-300">Chưa có dữ liệu</div>
         ) : !tickets.length ? (
           <div className="text-center text-gray-300">
@@ -362,38 +383,67 @@ export default function QueueDisplayWithTTS() {
           </div>
         ) : (
           <div className="w-full max-w-3xl">
-            <div className="overflow-x-auto bg-white rounded-lg shadow border-2 border-[#b10730]">
+            <div
+              className="overflow-x-auto bg-white rounded-lg shadow"
+              style={{ border: `2px solid ${borderAccent}` }}
+            >
               <table className="min-w-[520px] w-full table-auto border-collapse">
-                <thead className="bg-[#B3AAAA] text-black">
+                <thead
+                  className="text-black"
+                  style={{ backgroundColor: tableHeaderBg }}
+                >
                   <tr>
-                    <th className="px-4 py-3 text-center border border-[#b10730]">
+                    <th
+                      className="px-4 py-3 text-2xl text-center"
+                      style={{
+                        border: `1px solid ${borderAccent}`,
+                        color: tableTextColor,
+                      }}
+                    >
                       Số thứ tự
                     </th>
-                    <th className="px-4 py-3 text-center border border-[#b10730]">
+                    <th
+                      className="px-4 py-3 text-2xl text-center"
+                      style={{
+                        border: `1px solid ${borderAccent}`,
+                        color: tableTextColor,
+                      }}
+                    >
                       Quầy
                     </th>
                   </tr>
                 </thead>
-                <tbody className="text-gray-700">
+                <tbody>
                   {tickets.map((item, idx) => {
                     const isMostRecent = idx === 0;
+                    const rowBg = idx % 2 === 0 ? tableRowOdd : tableRowEven;
                     return (
                       <tr
                         key={item.id ?? `${item.ticket_number}-${idx}`}
-                        className="odd:bg-white even:bg-[#FFF2F4]"
+                        style={{ backgroundColor: rowBg }}
                       >
-                        <td className="px-4 py-3 text-center border border-[#b10730]">
+                        <td
+                          className="px-4 py-3 text-2xl text-center"
+                          style={{ border: `1px solid ${borderAccent}` }}
+                        >
                           <span
-                            className={
-                              isMostRecent
-                                ? "text-[#b10730] font-bold"
-                                : "text-gray-700"
-                            }
+                            style={{
+                              color: isMostRecent
+                                ? tableTextActive
+                                : tableTextColor,
+                              fontWeight: isMostRecent ? 800 : 500,
+                            }}
                           >
                             {item.ticket_number}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center font-bold border border-[#b10730]">
+                        <td
+                          className="px-4 py-3 text-center text-2xl font-bold"
+                          style={{
+                            border: `1px solid ${borderAccent}`,
+                            color: tableTextColor,
+                          }}
+                        >
                           {item.device?.name}
                         </td>
                       </tr>
@@ -406,15 +456,19 @@ export default function QueueDisplayWithTTS() {
         )}
       </main>
 
-      <footer className="w-full bg-[#B3AAAA] flex-none flex flex-col justify-center items-center py-4 overflow-hidden">
+      <footer
+        className="w-full flex-none flex flex-col justify-center items-center py-4 overflow-hidden"
+        style={{ backgroundColor: footerBg }}
+      >
         <div
-          className="text-lg text-[#b10730] font-semibold uppercase whitespace-nowrap"
+          className="text-lg font-bold uppercase whitespace-nowrap"
           style={{
             display: "inline-block",
             animation: "marquee 10s linear infinite",
+            color: footerTextColor,
           }}
         >
-          Kính chào quý khách, chúc quý khách một ngày tốt lành!
+          {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
         </div>
       </footer>
     </div>

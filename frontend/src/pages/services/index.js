@@ -235,7 +235,7 @@ const ServiceManagement = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <SummaryCard
-          title="Total Services"
+          title="Tổng số dịch vụ"
           value={totalServices}
           icon={
             <svg
@@ -305,7 +305,7 @@ const ServiceManagement = () => {
                           {item.color || "-"}
                         </span>
                       </td>
-                      <td className="p-4 text-sm font-semibold text-gray-800">
+                      <td className="p-4 text-sm   text-gray-800">
                         {formatDate(item.created_at)}
                       </td>
                       <td className="p-4 text-right">

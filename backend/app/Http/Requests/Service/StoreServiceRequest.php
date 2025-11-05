@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Service;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreServiceRequest extends FormRequest
 {
@@ -23,7 +24,27 @@ class StoreServiceRequest extends FormRequest
     {
         return [
             'name'=>'required|string|max:254',
-            'location'=>'required|string|max:254'
+            'queue_number' => [
+                'required',
+                'numeric',
+                Rule::unique('services', 'queue_number')->whereNull('deleted_at'),
+            ],
+            'color' => [
+                'nullable',                 
+                'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',  
+            ],
+        ];
+    }
+
+    public function messages(): array{
+        return 
+        [
+            'name.required' => 'Tên dịch vụ là bắt buộc.',
+            'queue_number.required' => 'Mã dịch vụ là bắt buộc.',
+            'queue_number.unique' => 'Mã dịch vụ đã tồn tại.',
+            'queue_number.numeric'=>'Mã dịch vụ phải là chữ số.',
+            'color.regex' => 'Màu sắc không hợp lệ. Vui lòng nhập đúng định dạng #RRGGBB hoặc #RGB.',
         ];
     }
 }
+           

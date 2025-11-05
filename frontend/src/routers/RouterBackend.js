@@ -14,8 +14,6 @@ import CreateUser from "../pages/users/create";
 
 import Device from "../pages/devices";
 import DeviceConfigurations from "../pages/device_configurations";
-import Logs from "../pages/logs";
-import DeploymentLogs from "../pages/deployment_logs";
 
 import CreateDeviceConfiguration from "../pages/device_configurations/create";
 import EditDevice from "../pages/devices/edit";
@@ -23,7 +21,7 @@ import EditDevice from "../pages/devices/edit";
 import EditDeviceConfiguration from "../pages/device_configurations/edit";
 import ShowDeviceConfiguration from "../pages/device_configurations/show";
 import ShowDeploymentLog from "../pages/deployment_logs/show";
-import ShowLog from "../pages/logs/show";
+// import ShowLog from "../pages/logs/show";
 import ServiceManagement from "../pages/services";
 import ServiceCreate from "../pages/services/create";
 import ServiceEdit from "../pages/services/edit";
@@ -31,6 +29,9 @@ import FeedbackManagement from "../pages/feedbacks";
 import TicketManagement from "../pages/tickets";
 import TicketCreate from "../pages/tickets/create";
 import QueueDisplay from "../pages/tickets/queue_display";
+import ConfigEdit from "../pages/config/edit";
+import ActivityLog from "../pages/logs";
+import DeploymentLog from "../pages/logs/deployment";
 
 const ProtectedRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/login" />;
@@ -87,20 +88,19 @@ const RouterBackend = [
       { path: "/monitoring/edit/:id", element: <Device /> },
 
       // --- Logs ---
-      { path: "/logs", element: <Logs /> },
-      { path: "/log/show/:id", element: <ShowLog /> },
+      { path: "/logs", element: <ActivityLog /> },
+      { path: "/deployment_logs", element: <DeploymentLog /> },
 
       { path: "/tickets", element: <TicketManagement /> },
       { path: "/ticket/create", element: <TicketCreate /> },
       // --- Deployments Logs ---
-      { path: "/deployment_logs", element: <DeploymentLogs /> },
-      { path: "/deployment_log/show/:id", element: <ShowDeploymentLog /> },
 
       { path: "/services", element: <ServiceManagement /> },
       { path: "/service/create", element: <ServiceCreate /> },
       { path: "/service/edit/:id", element: <ServiceEdit /> },
 
       { path: "/feedbacks", element: <FeedbackManagement /> },
+      { path: "/config", element: <ConfigEdit /> },
     ],
   },
 ];

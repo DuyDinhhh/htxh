@@ -48,29 +48,41 @@ function PaginationButton({
   );
 }
 
-const SummaryCard = ({ title, value, icon, bg = "bg-white" }) => {
-  return (
-    <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm text-gray-500">{title}</div>
-          <div className="text-2xl font-bold text-gray-900 mt-2">{value}</div>
-        </div>
-        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-          {icon}
+const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
+  <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <div className="text-sm text-gray-500">{title}</div>
+        {typeof today === "number" && (
+          <div className="text-2xl font-bold text-gray-900 mt-2">{today}</div>
+        )}
+        <div className="mt-1 text-xs text-gray-500">
+          Tất cả: <span className="font-semibold">{value}</span>
         </div>
       </div>
+      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+        {icon}
+      </div>
     </div>
-  );
-};
+  </div>
+);
 
 const FeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState([]);
-
-  // Pagination state (follow device)
+  const [value, setValue] = useState([]);
+  const [quickview, setQuickview] = useState({
+    total: 0,
+    totaltoday: 0,
+    positive: 0,
+    positivetoday: 0,
+    negative: 0,
+    negativetoday: 0,
+    neutral: 0,
+    neutraltoday: 0,
+  });
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -116,9 +128,10 @@ const FeedbackManagement = () => {
         date_from: dateFrom,
         date_to: dateTo,
         sort,
+        value,
       };
       const response = await FeedbackService.index(page, params);
-      console.log("feedback: ", response);
+      // console.log("feedback: ", response);
       const data = response.feedback;
       setFeedbacks(data?.data || []);
       setPagination({
@@ -129,6 +142,19 @@ const FeedbackManagement = () => {
         from: data?.from || 0,
         to: data?.to || 0,
       });
+
+      if (response.quickview) {
+        setQuickview({
+          total: Number(response.quickview.total ?? 0),
+          totaltoday: Number(response.quickview.totaltoday ?? 0),
+          positive: Number(response.quickview.positive ?? 0),
+          positivetoday: Number(response.quickview.positivetoday ?? 0),
+          negative: Number(response.quickview.negative ?? 0),
+          negativetoday: Number(response.quickview.negativetoday ?? 0),
+          neutral: Number(response.quickview.neutral ?? 0),
+          neutraltoday: Number(response.quickview.neutraltoday ?? 0),
+        });
+      }
     } catch (err) {
       setFeedbacks([]);
       setPagination({
@@ -153,10 +179,9 @@ const FeedbackManagement = () => {
     fetchFeedbacks(1);
   }, []);
 
-  // re-fetch when filters change (following device page pattern — page-based fetch)
   useEffect(() => {
     fetchFeedbacks(1);
-  }, [deviceId, serviceId, dateFrom, dateTo, sort]);
+  }, [deviceId, serviceId, dateFrom, dateTo, sort, value]);
 
   const handlePageChange = (newPage) => {
     if (
@@ -192,6 +217,7 @@ const FeedbackManagement = () => {
         date_from: dateFrom,
         date_to: dateTo,
         sort,
+        value,
       };
       const response = await FeedbackService.export(params);
 
@@ -211,27 +237,28 @@ const FeedbackManagement = () => {
     }
   };
 
-  // summary metrics
-  const totalFeedbacks = pagination.total || feedbacks.length;
-  const positiveCount = feedbacks.filter((f) => f.value >= 3).length;
-  const negativeCount = feedbacks.filter((f) => f.value <= 2).length;
-
   return (
     <div className="w-full px-8 py-8">
-      {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900">
             Quản lý Feedback
           </h2>
         </div>
+
+        <button
+          onClick={handleExport}
+          className="bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center"
+        >
+          <span className="ml-2">Xuất Excel</span>
+        </button>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <SummaryCard
-          title="Total Feedbacks"
-          value={totalFeedbacks}
+          title="Tổng hợp"
+          value={quickview.total}
+          today={quickview.totaltoday}
           icon={
             <svg
               className="w-6 h-6 text-red-500"
@@ -244,8 +271,9 @@ const FeedbackManagement = () => {
           }
         />
         <SummaryCard
-          title="Positive"
-          value={positiveCount}
+          title="Rất hài lòng - hài lòng"
+          value={quickview.positive}
+          today={quickview.positivetoday}
           icon={
             <svg
               className="w-6 h-6 text-green-500"
@@ -258,9 +286,26 @@ const FeedbackManagement = () => {
             </svg>
           }
         />
+
         <SummaryCard
-          title="Negative"
-          value={negativeCount}
+          title="Bình thường"
+          value={quickview.neutral}
+          today={quickview.neutraltoday}
+          icon={
+            <svg
+              className="w-6 h-6 text-blue-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <circle cx="12" cy="12" r="9"></circle>
+            </svg>
+          }
+        />
+        <SummaryCard
+          title="Không hài lòng"
+          value={quickview.negative}
+          today={quickview.negativetoday}
           icon={
             <svg
               className="w-6 h-6 text-gray-400"
@@ -275,7 +320,6 @@ const FeedbackManagement = () => {
       </div>
 
       <div className="bg-white rounded-lg overflow-hidden shadow">
-        {/* Filters */}
         <div className="p-6 border-b">
           <div className="flex flex-wrap gap-3 items-center">
             <select
@@ -286,7 +330,8 @@ const FeedbackManagement = () => {
               <option value="">-- Tất cả dịch vụ --</option>
               {services.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {svc.name}
+                  {/* {svc.name} */}
+                  {svc.name} {svc.deleted_at ? "(Đã xoá)" : ""}
                 </option>
               ))}
             </select>
@@ -299,9 +344,22 @@ const FeedbackManagement = () => {
               <option value="">-- Tất cả thiết bị --</option>
               {devices.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {svc.name}
+                  {/* {svc.name} */}
+                  {svc.name} {svc.deleted_at ? "(Đã xoá)" : ""}
                 </option>
               ))}
+            </select>
+
+            <select
+              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 min-w-[180px]"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            >
+              <option value="">-- Tất cả đánh giá --</option>
+              <option value={4}>Rất hài lòng</option>
+              <option value={3}>Hài lòng</option>
+              <option value={2}>Bình thường</option>
+              <option value={1}>Không hài lòng</option>
             </select>
 
             <input
@@ -326,20 +384,14 @@ const FeedbackManagement = () => {
               <option value="desc">Mới nhất</option>
               <option value="oldest">Cũ nhất</option>
             </select>
-
+            {/* 
             <button
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
               onClick={() => fetchFeedbacks(1)}
             >
               Lọc
             </button>
-            <div className="flex-1" />
-            <button
-              onClick={handleExport}
-              className="bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center"
-            >
-              <span className="ml-2">Xuất Excel</span>
-            </button>
+            <div className="flex-1" /> */}
           </div>
         </div>
 
@@ -355,10 +407,10 @@ const FeedbackManagement = () => {
                   <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
                     Dịch vụ
                   </th>
-                  <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
+                  <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
                     Đánh giá
                   </th>
-                  <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
+                  <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
                     Số thứ tự
                   </th>
                   <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
@@ -386,12 +438,12 @@ const FeedbackManagement = () => {
                       className="border-b last:border-b-0 hover:bg-red-50 transition-colors duration-150"
                     >
                       <td className="p-4 text-sm text-gray-600">
-                        {item.device?.name || "-"}
+                        {item.ticket?.device_with_trashed?.name || "-"}
                       </td>
                       <td className="p-4 text-sm text-gray-600">
-                        {item.service?.name || "-"}
+                        {item.ticket?.service_with_trashed?.name || "-"}
                       </td>
-                      <td className="p-4 text-sm font-semibold text-gray-800">
+                      <td className="p-4 text-center text-sm font-semibold text-gray-800">
                         {item.value === 1 && (
                           <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
                             Không hài lòng
@@ -414,7 +466,7 @@ const FeedbackManagement = () => {
                         )}
                         {!item.value && "-"}
                       </td>
-                      <td className="p-4 text-sm text-gray-600">
+                      <td className="p-4 text-sm text-center text-gray-600">
                         {item.ticket?.ticket_number || "-"}
                       </td>
                       <td className="p-4 text-sm text-gray-600 text-center">

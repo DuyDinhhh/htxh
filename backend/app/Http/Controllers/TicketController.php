@@ -11,12 +11,17 @@ use Carbon\Carbon;
 class TicketController extends Controller
 {
     public function index(Request $request){
+        $today = Carbon::today()->format('Y-m-d'); 
+
         $ticket = Ticket::query()
         ->when($request->filled('service_id'), function ($q) use ($request){
             $q -> where('service_id',$request->service_id);
         })
         ->when($request->filled('device_id'), function($q) use ($request){
             $q -> where('device_id', $request -> device_id);
+        })
+        ->when($request->filled('status'), function($q) use ($request){
+            $q -> where('status', $request -> status);
         })
         ->when($request->filled('date_from'), function($q) use ($request) {
             $q -> where('created_at', '>=', Carbon::parse($request->date_from));
@@ -25,71 +30,65 @@ class TicketController extends Controller
             $q -> where('created_at','<=', \Carbon\Carbon::parse($request->date_to)->endOfDay());
         })
         ->when($request->filled('sort'), function($q) use ($request) {
-            $q -> orderBy('created_at', $request->sort === 'oldest' ? 'asc' : 'desc');
+            $q -> orderBy('id', $request->sort === 'oldest' ? 'asc' : 'desc');
         }, function ($q){
-            $q -> orderBy('created_at','desc');
+            $q -> orderBy('id','desc');
         })
-        ->with('device','service')
+        ->with('deviceWithTrashed','serviceWithTrashed')
         ->paginate(8);
 
-         return response()->json([
+        $total = Ticket::count();
+        $totaltoday = Ticket::whereDate('created_at',$today)->count();
+
+        $waiting = Ticket::where('status','waiting')->count();
+        $waitingtoday = Ticket::where('status','waiting')->whereDate('created_at',$today)->count();
+
+        $called = Ticket::where('status','called')->count();
+        $calledtoday = Ticket::where('status','called')->whereDate('created_at',$today)->count();
+
+        $skipped = Ticket::where('status','skipped')->count();
+        $skippedtoday = Ticket::where('status','skipped')->whereDate('created_at',$today)->count();
+
+        $quickview = [
+            'total' => $total,
+            'totaltoday' => $totaltoday,
+            'waiting' => $waiting,
+            'waitingtoday'=>$waitingtoday,
+            'called'=>$called,
+            'calledtoday'=>$calledtoday,
+            'skipped' => $skipped,
+            'skippedtoday'=>$skippedtoday,
+        ];
+
+        return response()->json([
             'status'=>true,
             'message'=>'Ticket list retrieved successfully,',
-            'ticket'=>$ticket
+            'ticket'=>$ticket,
+            'quickview' => $quickview
         ]);
     }
 
     public function store($id){
         $service = Service::with('devices')->findOrFail($id);
-        \Log::debug("Service: ". $service);
-        \Log::debug("Device: ". $service->devices);
- 
+
         $today = Carbon::today()->format('Y-m-d');
-        $deviceStats=[];
-        foreach($service->devices as $device){
-            $ticketwaiting = Ticket::where("device_id",$device->id)
-                            ->where("status","waiting")
-                            ->whereDate('created_at', $today)
-                            ->count();
-            $deviceStats[] = [
-                'device' => $device,
-                'waiting' => $ticketwaiting,
-            ];
-        }
-
-        \Log::debug("Device status: ",$deviceStats);
-
-          usort($deviceStats, function ($a, $b) {
-            if ($a['waiting'] !== $b['waiting']) {
-                return $a['waiting'] <=> $b['waiting'];
-            }
-            return strcmp((string) $a['device']->id, (string) $b['device']->id);
-        });
-
-        \Log::debug("Device status: ",$deviceStats);
-
-        $targetDevice   = $deviceStats[0]['device'];
-        $targetDeviceId = (string) $targetDevice->id;
-         $today = Carbon::today()->format('Y-m-d');
-        $latestTicket = Ticket::where('service_id', $service->id)
-            ->whereDate('created_at', $today)
-            ->orderBy('ticket_number', 'desc')  // Order by ticket number descending
+        $latestTicket = Ticket::whereDate('created_at', $today)
+            ->where('ticket_number', 'like', $service->queue_number.'%')            
+            ->orderBy('sequence', 'desc')   
             ->first();
+
         if (!$latestTicket) {
             $ticketSequence = 1;
         } else {
-            $lastSequence = (int) substr($latestTicket->ticket_number, -3);
-            $ticketSequence = $lastSequence + 1;
+            $ticketSequence = ($latestTicket->sequence) + 1;
         }
         $formattedSequence = str_pad($ticketSequence, 3, '0', STR_PAD_LEFT);
         $ticketNumber = "{$service->queue_number}{$formattedSequence}";
 
-        \Log::debug('Ticket number: '.$ticketNumber);
-
         try {
             $ticket = new Ticket();
-            $ticket->device_id = $targetDeviceId;
             $ticket->ticket_number = $ticketNumber;
+            $ticket->sequence = $ticketSequence;
             $ticket->service_id = $service->id;
             $ticket->save();
 
@@ -100,11 +99,11 @@ class TicketController extends Controller
             ]);
         }
         catch(\Throwable $e){
+            \Log::error('Failed to store ticket', ['error' => $e->getMessage()]);
             return response()->json([
                 'status'=>false,
                 'message'=> $e->getMessage(),
             ]);
-            \Log::error('Failed to store ticket', ['error' => $e->getMessage(), 'data' => $data]);
         }
     }
 
@@ -124,8 +123,6 @@ class TicketController extends Controller
     }
 
 
-
-
     public function export(Request $request)
     {
         $tickets = Ticket::query()
@@ -135,6 +132,9 @@ class TicketController extends Controller
         ->when($request->filled('device_id'), function($q) use ($request){
             $q -> where('device_id', $request -> device_id);
         })
+        ->when($request->filled('status'), function($q) use ($request){
+            $q -> where('status', $request -> status);
+        })
         ->when($request->filled('date_from'), function($q) use ($request) {
             $q -> where('created_at', '>=', Carbon::parse($request->date_from));
         })
@@ -142,11 +142,11 @@ class TicketController extends Controller
             $q -> where('created_at','<=', \Carbon\Carbon::parse($request->date_to)->endOfDay());
         })
         ->when($request->filled('sort'), function($q) use ($request) {
-            $q -> orderBy('created_at', $request->sort === 'oldest' ? 'asc' : 'desc');
+            $q -> orderBy('id', $request->sort === 'oldest' ? 'asc' : 'desc');
         }, function ($q){
-            $q -> orderBy('created_at','desc');
+            $q -> orderBy('id','desc');
         })
-        ->with('device','service')
+        ->with('deviceWithTrashed','serviceWithTrashed')
         ->get();
 
         $ticket_array = [
@@ -155,17 +155,20 @@ class TicketController extends Controller
                 'Thiết bị',
                 'Dịch vụ',
                 'Trạng thái',
-                'Ngày tạo'
+                'Ngày tạo',
+                'Ngày cập nhật'
             ]
         ];
 
         foreach ($tickets as $ticket) {
             $ticket_array[] = [
                 $ticket -> ticket_number,
-                optional($ticket->device)->name ?? $ticket->service_id,
-                optional($ticket->service)->name ?? $ticket->service_id,  
-                $ticket->status === "called" ? "Đã gọi" : "Đang chờ",
+                optional($ticket->deviceWithTrashed)->name ?? $ticket->device_id,
+                optional($ticket->serviceWithTrashed)->name ?? $ticket->service_id,  
+                $ticket->status === "called" ? "Đã gọi" : ($ticket->status === "processing"?
+            "Đang xử lí": ($ticket->status === "skipped" ? "Bỏ qua" : "Đang chờ")),
                 $ticket->created_at->format('Y-m-d H:i:s'),
+                $ticket->created_at == $ticket->updated_at ? "" : $ticket->updated_at->format('Y-m-d H:i:s') ,
             ];
         }
         return $this->downloadExcel($ticket_array, 'ticket.xls');

@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use PhpMqtt\Client\Facades\MQTT;
-
+use Spatie\Activitylog\Models\Activity;
+use App\Models\Device;
+use App\Models\Service;
 class MqttSubscribe extends Command
 {
     protected $signature = 'mqtt:subscribe {topic}';
@@ -21,19 +23,30 @@ class MqttSubscribe extends Command
         $clientId = 'subscribe-' . $topic;
 
         config(['mqtt-client.connections.default.client_id' => $clientId]);
-        $mqtt = MQTT::connection();
-        $this->info("Subscribing to topic: {$topic}");
+        if($topic === 'requestnumber'){
+            $devices = Device::select('id', 'name')->get();
+            $services = Service::whereHas('devices')
+                ->select('id', 'name')
+                ->get();            
+            $mqtt = MQTT::connection('publisher');
+            $mqtt->publish("device/list", json_encode($devices),0,true);
+            $mqtt->publish("service/list", json_encode($services),0,true);
+            $mqtt->disconnect();
+        }
 
+        $mqtt = MQTT::connection();
+        if($topic !== "#"){
+            $this->info("Subscribing to topic: {$topic}");
+            $this->logMqttEvent('connect', $topic, 'Subscribe to the topic: '.$topic);
+        }
+        
         $mqtt->subscribe($topic, function (string $topic, string $message) {
-            \Log::info("MQTT callback start", ['topic' => $topic, 'message' => $message]);
             $this->info(sprintf("Received message on topic [%s]: %s", $topic, $message));
             $data = json_decode($message, true);
-
-            // $parts = explode('/', $topic);
+            if($topic !== "response"){
+                $this->logMqttEvent('receive', $topic, $data);}
             if($topic === 'feedback'){
-                event(new \App\Events\FeedbackReceived($data)); //{"device_id":"00:1A:2B:3C:4D:09","value":3}
-            }elseif ($topic === 'device/register') {
-                event(new \App\Events\DeviceRegister($data));
+                event(new \App\Events\FeedbackReceived($data));
             }elseif ($topic === 'device/status'){
                 event(new \App\Events\DeviceStatusReceived($data)); 
             }elseif ($topic === 'requestnumber'){
@@ -44,14 +57,34 @@ class MqttSubscribe extends Command
                 event(new \App\Events\NumberSkip($data));
             }elseif ($topic === 'specificnumber'){
                 event(new \App\Events\NumberSpecific($data));
+            }elseif ($topic === 'transfernumber'){
+                event(new \App\Events\NumberTransfer($data));
+            }elseif ($topic === 'device/register'){
+                \Log::debug("I was here");
+                event(new \App\Events\DeviceRegister($data));
+            }elseif ($topic === 'transferservice'){
+                \Log::debug("Test 234");
+                event(new \App\Events\ServiceTransfer($data));
             }elseif ($topic === 'responsenumber'){
                 if ($data['number']!== "NoAvailable" ){
                     event(new \App\Events\ResponseNumberReceived($data));
                 }
             }else {
-                \Log::debug('default subscribe');
+                \Log::debug('default subscribee');
             }
         });
         $mqtt->loop(true);
     }
+
+    private function logMqttEvent($event, $topic, $message)
+    {
+        activity()
+            ->useLog('mqtt')  
+            ->event($event)   
+            ->withProperties([
+                'message' => $message,  
+            ])
+            ->log($topic);
+    }
+
 }

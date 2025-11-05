@@ -4,11 +4,12 @@ import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 
 function LayoutAdmin() {
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   return (
     <div className="flex min-h-screen bg-[#f7f8fc]  ">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="bg-[#fdfcf8] flex flex-col flex-1 w-full">
-        <Header />
+        <Header onMenuClick={() => setMobileOpen(true)} />
         <Outlet />
       </div>
     </div>

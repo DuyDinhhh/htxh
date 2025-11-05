@@ -12,12 +12,11 @@ return new class extends Migration
     public function up(): void {
         Schema::create('services', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name', 255);
-            $table->string('location', 255)->nullable();
+            $table->string('name', 255)->nullable();
+            $table->integer('queue_number')->nullable();
+            $table->string('color', 255)->nullable();
             $table->timestamp('created_at')->useCurrent()->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate()->nullable();
-            $table->integer('created_by')->nullable();
-            $table->integer('updated_by')->nullable();
             $table->softDeletes();
 
         });

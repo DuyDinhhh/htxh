@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use App\Http\Requests\Service\UpdateServiceRequest;
+use App\Http\Requests\Service\StoreServiceRequest;
+use PhpMqtt\Client\Facades\MQTT;
 
 class ServiceController extends Controller
 {
@@ -23,7 +26,8 @@ class ServiceController extends Controller
     }
 
     public function list(){
-        $service = Service::with('devices')->get();
+        $service = Service::withTrashed()
+        ->with('devices')->get();
         if(!$service){
             return response()->json([
                 'error' => 'Services not found.'
@@ -53,25 +57,22 @@ class ServiceController extends Controller
     }
 
 
-    public function store(Request $request){
-
+    public function store(StoreServiceRequest $request){
+        
         $service = new Service();
         $service -> name = $request ->name;
         $service -> color = $request -> color;
         $service -> queue_number = $request -> queue_number;
         $service -> created_by = auth()->id();
-
         $service -> save();
 
-        // $this -> logActivity(
-        //     auth()->id(),
-        //     'Service',
-        //     'Create',
-        //     [
-        //         'service' => $service->name,
-        //         'changes' => "Create new service: ".$service->name,
-        //     ]
-        // );
+        // config(['mqtt-client.connections.default.client_id' => 'publish-service-list']);
+        // $services = Service::whereHas('devices')
+        //     ->select('id', 'name')
+        //     ->get();            
+        // $mqtt = MQTT::connection('publisher');
+        // $mqtt->publish("service/list", json_encode($services),0,true);
+        // $mqtt->disconnect();
 
         return response()->json([
             'status'=>true,
@@ -80,7 +81,8 @@ class ServiceController extends Controller
         ]);
     }
 
-    public function update(Request $request,$id){
+    public function update(UpdateServiceRequest $request,$id)
+    {
         $service = Service::findOrFail($id);
         $oldValues = $service->getOriginal();
         if(!$service){
@@ -96,18 +98,6 @@ class ServiceController extends Controller
         $service -> updated_by = auth()->id();
 
         $service -> save();
-        // $changes = ActivityLog::logChanges($oldValues,$service->getAttributes());
-
-        // $this->logActivity(
-        //     auth()->id(),
-        //     'Service',
-        //     'Update',
-        //     [
-        //         'service'=> $service->name,
-        //         'changes'=>$changes
-        //     ]
-        // );
-
         return response()->json([
             'status'=>true,
             'message'=> "Service updated successfully.",
@@ -123,30 +113,20 @@ class ServiceController extends Controller
                 'service' => $service
             ]);
         }
-        // $this -> logActivity(
-        //     auth()->id(),
-        //     'Service',
-        //     'Delete',
-        //     [
-        //         'service'=>$service->name,
-        //         'changes'=>"Delete the service: ".$service->name
-        //     ]
-        // );
-
         $service -> delete();
+
+        config(['mqtt-client.connections.default.client_id' => 'publish-service-list']);
+        $services = Service::whereHas('devices')
+            ->select('id', 'name')
+            ->get();            
+        $mqtt = MQTT::connection('publisher');
+        $mqtt->publish("service/list", json_encode($services),0,true);
+        $mqtt->disconnect();
+
         return response()->json([
             'status'=>true,
             'message'=> "Sevice deleted successfully."
         ]);
     }
-
-    private function logActivity($userId, $actorType,$action, array $details)
-    {
-        ActivityLog::create([
-            'actor_id' => $userId,
-            'actor_type' => $actorType,
-            'action' => $action,
-            'context' => json_encode($details),
-        ]);
-    }
+ 
 }

@@ -14,11 +14,14 @@ return new class extends Migration
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             $table->string('ticket_number');
+            $table->integer('sequence');
             $table->string('device_id')->nullable();
             $table->bigInteger('service_id')->nullable();
             $table->enum('status', [
                 'waiting',
-                'called',     
+                'called',
+                'skipped',
+                'processing',     
             ])->default('waiting');
             $table->timestamps();
         });

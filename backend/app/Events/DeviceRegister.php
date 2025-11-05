@@ -10,19 +10,16 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class HeartbeetReiceved
+class DeviceRegister
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
     public array $data;
     public function __construct(array $data)
     {
+        \Log::debug("I was here");
         $this->data = $data;
     }
-
     /**
      * Get the channels the event should broadcast on.
      *

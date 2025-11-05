@@ -4,16 +4,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions; 
 class Device extends Model {
-    use HasFactory,SoftDeletes;
+
+    use HasFactory,SoftDeletes,LogsActivity;
     protected $primaryKey = 'id';
     protected $keyType = 'string';
-    protected $fillable = ['id','name', 'serial', 'mac','status', 'service_id', 'created_by', 'updated_by'];
+    public $incrementing = false; 
+    protected $fillable = ['id','name', 'status','created_at','updated_at', 'created_by', 'updated_by'];
 
-    // public function service() {
-    //     return $this->belongsTo(Service::class);
-    // }
+ 
     public function services()
     {
         return $this->belongsToMany(Service::class, 'device_service', 'device_id', 'service_id')
@@ -32,5 +33,15 @@ class Device extends Model {
     public function oldestTicket()
     {
         return $this->hasOne(Ticket::class)->oldestOfMany('created_at');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+        ->useLogName('device')  
+        ->logAll()
+        ->logOnlyDirty()
+        ->dontSubmitEmptyLogs()
+        ->setDescriptionForEvent(fn($e) => ucfirst($e).' device: '.$this->name);
     }
 }

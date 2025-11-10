@@ -10,9 +10,6 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 
-use App\Http\Controllers\MqttDemoController;
-Route::post('/mqtt/publish', [MqttDemoController::class, 'publish']);
-
 Route::get('/', function () {
     return response()->json(['message' => 'Hello world!']);
 });

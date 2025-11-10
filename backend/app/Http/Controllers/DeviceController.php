@@ -78,7 +78,6 @@ use PhpMqtt\Client\Facades\MQTT;
         activity()
             ->useLog('device')                       
             ->performedOn($device)
-            ->causedBy(auth()->user())
             ->event('updated')                        
             ->withProperties([
                 'old_services' => $oldServices,

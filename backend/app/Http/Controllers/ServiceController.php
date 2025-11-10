@@ -63,7 +63,7 @@ class ServiceController extends Controller
         $service -> name = $request ->name;
         $service -> color = $request -> color;
         $service -> queue_number = $request -> queue_number;
-        $service -> created_by = auth()->id();
+        // $service -> created_by = auth()->id();
         $service -> save();
 
         // config(['mqtt-client.connections.default.client_id' => 'publish-service-list']);
@@ -95,7 +95,7 @@ class ServiceController extends Controller
         $service -> name = $request -> name;
         $service -> color = $request -> color;
         $service -> queue_number = $request -> queue_number;
-        $service -> updated_by = auth()->id();
+        // $service -> updated_by = auth()->id();
 
         $service -> save();
         return response()->json([

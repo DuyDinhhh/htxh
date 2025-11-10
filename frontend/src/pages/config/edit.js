@@ -58,6 +58,10 @@ const ConfigEdit = () => {
         const res = await ConfigService.index();
         const cfg = res?.config || res || null;
 
+        if (cfg?.photo) {
+          cfg.photo = `${window.location.protocol}//${window.location.hostname}/images/config/` + cfg.photo;
+        }
+        
         if (!cfg || !cfg.id) {
           setConfig(null);
           setConfigId(null);

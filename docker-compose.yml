@@ -42,9 +42,21 @@ services:
       - db
     networks:
       - webnet
-    expose:
-      - "80"
-    
+
+  nginx-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.nginx
+    container_name: backend-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    volumes:
+      - .:/var/www
+    networks:
+      - webnet
+
 volumes:
   dbdata:
 

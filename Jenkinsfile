@@ -8,13 +8,13 @@ pipeline {
     stages {
         stage('Build Docker Images') {
             steps {
-                sh 'docker-compose -f $DOCKER_COMPOSE_FILE build'
+                sh 'docker compose -f $DOCKER_COMPOSE_FILE build'
             }
         }
 
         stage('Start Services') {
             steps {
-                sh 'docker-compose -f $DOCKER_COMPOSE_FILE up -d'
+                sh 'docker compose -f $DOCKER_COMPOSE_FILE up -d'
             }
         }
 

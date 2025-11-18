@@ -40,6 +40,8 @@ services:
       DB_PASSWORD: password123
     depends_on:
       - db
+    volumes:
+      - appdata:/var/www/public
     networks:
       - webnet
 
@@ -49,15 +51,16 @@ services:
       dockerfile: Dockerfile.nginx
     container_name: backend-nginx
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - backend
     volumes:
-      - .:/var/www
+      - appdata:/var/www/public:ro
     networks:
       - webnet
 
 volumes:
+  appdata:
   dbdata:
 
 networks:

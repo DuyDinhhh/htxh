@@ -63,17 +63,8 @@ class ServiceController extends Controller
         $service -> name = $request ->name;
         $service -> color = $request -> color;
         $service -> queue_number = $request -> queue_number;
-        $service -> created_by = auth()->id();
+        // $service -> created_by = auth()->id();
         $service -> save();
-
-        // config(['mqtt-client.connections.default.client_id' => 'publish-service-list']);
-        // $services = Service::whereHas('devices')
-        //     ->select('id', 'name')
-        //     ->get();            
-        // $mqtt = MQTT::connection('publisher');
-        // $mqtt->publish("service/list", json_encode($services),0,true);
-        // $mqtt->disconnect();
-
         return response()->json([
             'status'=>true,
             'message'=> "Service created successfully.",
@@ -95,7 +86,7 @@ class ServiceController extends Controller
         $service -> name = $request -> name;
         $service -> color = $request -> color;
         $service -> queue_number = $request -> queue_number;
-        $service -> updated_by = auth()->id();
+        // $service -> updated_by = auth()->id();
 
         $service -> save();
         return response()->json([

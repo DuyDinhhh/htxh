@@ -9,6 +9,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\ButtonConfigController;
 
 use App\Http\Controllers\MqttDemoController;
 Route::post('/mqtt/publish', [MqttDemoController::class, 'publish']);
@@ -33,7 +34,10 @@ Route::prefix('config')->group(function(){
     Route::get('/',[ConfigController::class,'index']);
     Route::post('/', [ConfigController::class, 'store']); 
     Route::put('/{id}', [ConfigController::class, 'update']); 
+    Route::get('/buttons', [ButtonConfigController::class, 'index']);
+    Route::post('/buttons', [ButtonConfigController::class, 'save']);
 });
+
 
 Route::prefix('device')->group(function(){
     Route::get('/',[DeviceController::class,'index']);
@@ -52,7 +56,6 @@ Route::prefix('/ticket')->group(function(){
 Route::get('/debug',[TicketController::class,'debug']);
 
 Route::post('/ticket/{id}',[TicketController::class,'store']);
-
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -67,28 +70,9 @@ Route::middleware('jwt')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/user', [AuthController::class, 'getUser']);
-        // Service routes
-    // Route::get('/services', [ServiceController::class, 'index']);
-    // Route::post('/service', [ServiceController::class, 'store']);
-
-    // Device routes
-    // Route::prefix('device')->group(function(){
-    //     Route::get('/',[DeviceController::class,'index']);
-    //     Route::post('/register',[DeviceController::class,'register']);
-    //     Route::post('/{id}/heartbeat',[DeviceController::class,'heartbeat']);
-    //     Route::post('/{id}/assign-service',[DeviceController::class,'assignService']);
-
-    //     Route::get('/{id}/config',[DeviceConfigController::class,'config']);
-    //     Route::post('/{id}/config',[DeviceConfigController::class,'store']);
-    // });
-
-
-
     Route::prefix('feedback')->group(function(){
         // Route::get('/',[FeedbackController::class,'index']);
         Route::post('/store',[FeedbackController::class,'store']);
         Route::get('/{id}',[FeedbackController::class,'show']);
     });
-
-    // Device Config routes
 });

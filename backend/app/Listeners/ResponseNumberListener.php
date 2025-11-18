@@ -57,7 +57,7 @@ class ResponseNumberListener
                     ->whereDate('created_at',$today)
                     ->first();
         
-        \Log::debug($ticket);
+        // \Log::debug($ticket);
 
         if(!$ticket){
             foreach ($priorities as $priority) {

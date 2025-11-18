@@ -156,7 +156,7 @@ const TicketManagement = () => {
       };
 
       const response = await TicketService.index(page, params);
-      console.log("Ticket: ", response);
+      // console.log("Ticket: ", response);
       const data = response.ticket;
       const items = data?.data || data || [];
 

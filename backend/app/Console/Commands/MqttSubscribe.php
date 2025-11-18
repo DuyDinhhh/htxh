@@ -21,7 +21,6 @@ class MqttSubscribe extends Command
     {
         $topic = $this->argument('topic');
         $clientId = 'subscribe-' . $topic;
-
         config(['mqtt-client.connections.default.client_id' => $clientId]);
         if($topic === 'requestnumber'){
             $devices = Device::select('id', 'name')->get();

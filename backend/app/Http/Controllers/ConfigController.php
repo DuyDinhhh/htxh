@@ -24,7 +24,7 @@ class ConfigController extends Controller
 
     public function store(StoreConfigRequest $request){
         $config = new Config();
-         $config->text_top = $request->text_top;
+        $config->text_top = $request->text_top;
         $config->text_top_color = $request->text_top_color;
         $config->bg_top_color = $request->bg_top_color;
 

@@ -1,8 +1,5 @@
 FROM php:8.4-fpm
 
-WORKDIR /var/www
-
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -10,19 +7,25 @@ RUN apt-get update && apt-get install -y \
     zip \
     git \
     curl \
-    libzip-dev
+    libzip-dev \
+    supervisor \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
 RUN docker-php-ext-install pdo_mysql gd zip
 
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
 
 COPY . .
 
-RUN composer install --optimize-autoloader --no-dev
-RUN cp .env.example .env
-# Generate key (optional for dev)
-RUN php artisan key:generate
+COPY .env.example .env 
 
-EXPOSE 8000
+RUN composer install && php artisan key:generate
+
+RUN chown -Rf www-data:www-data /var/www
+COPY supervisord.conf /etc/supervisord.conf
+
+EXPOSE 9000
+USER www-data
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

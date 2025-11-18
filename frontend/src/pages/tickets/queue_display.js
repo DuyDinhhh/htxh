@@ -22,6 +22,9 @@ const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
 export default function QueueDisplayWithTTS() {
+  const ttsQueueRef = useRef([]);
+  const isSpeakingRef = useRef(false);
+
   const [tickets, setTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
 
@@ -154,25 +157,53 @@ export default function QueueDisplayWithTTS() {
     };
   }, []);
 
-  const speak = (text) => {
-    if (!ttsEnabled || !window.speechSynthesis || !text) return;
-    try {
-      window.speechSynthesis.cancel();
+  const speakMulti = (ticketStr, counterStr) => {
+    if (!ttsEnabled || !window.speechSynthesis) return;
+    ttsQueueRef.current.push({ ticketStr, counterStr });
+    if (!isSpeakingRef.current) processTTSQueue();
+  };
+
+  const processTTSQueue = () => {
+    if (isSpeakingRef.current) return;
+    if (ttsQueueRef.current.length === 0) return;
+
+    const { ticketStr, counterStr } = ttsQueueRef.current.shift();
+    isSpeakingRef.current = true;
+
+    window.speechSynthesis.cancel();
+
+    const voice = voiceRef.current;
+    const createUtter = (text, rate) => {
       const u = new SpeechSynthesisUtterance(text);
-      if (voiceRef.current) u.voice = voiceRef.current;
-      u.lang = voiceRef.current?.lang || "vi-VN";
-      u.rate = 0.3;
+      if (voice) u.voice = voice;
+      u.lang = voice?.lang || "vi-VN";
       u.pitch = 1;
-      window.speechSynthesis.speak(u);
-    } catch (e) {
-      console.error("TTS error:", e);
-    }
+      u.rate = rate;
+      return u;
+    };
+
+    const p1 = createUtter("Mời số", 0.7);
+    const p2 = createUtter(ticketStr, 0.3);
+    const p3 = createUtter("đến quầy số", 0.7);
+    const p4 = createUtter(counterStr, 0.7);
+
+    p1.onend = () => window.speechSynthesis.speak(p2);
+    p2.onend = () => window.speechSynthesis.speak(p3);
+    p3.onend = () => window.speechSynthesis.speak(p4);
+
+    p4.onend = () => {
+      setTimeout(() => {
+        isSpeakingRef.current = false;
+        processTTSQueue();
+      }, 1000);
+    };
+
+    window.speechSynthesis.speak(p1);
   };
 
   // ---------- Echo channel for tickets ----------
   useEffect(() => {
     let firstEvent = true;
-
     const channel = echo
       .channel("queue.display")
       .listen(".ResponseNumberReceived", (e) => {
@@ -283,7 +314,7 @@ export default function QueueDisplayWithTTS() {
       rawCounter = rawCounter.replace(/^qu(â|a)y\s*/i, "").trim();
       const parts = rawCounter.split(" ");
       const lastPart = parts[parts.length - 1];
-      speak(`Mời số ${ticketPart} đến quầy số ${lastPart}.`);
+      speakMulti(ticketPart, lastPart);
     }
   }, [tickets, ttsEnabled]);
 

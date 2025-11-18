@@ -9,7 +9,7 @@ Route::get('/mqtt/debug', function () {
         'host' => '['.config('mqtt.host').']',
         'port' => config('mqtt.port'),
         'user' => '['.config('mqtt.username').']',
-        'pass_len' => strlen((string) config('mqtt.password')), // don't print the pass
+        'pass_len' => strlen((string) config('mqtt.password')),  
         'tls'  => config('mqtt.tls'),
     ];
 });

@@ -32,6 +32,7 @@ import QueueDisplay from "../pages/tickets/queue_display";
 import ConfigEdit from "../pages/config/edit";
 import ActivityLog from "../pages/logs";
 import DeploymentLog from "../pages/logs/deployment";
+import ButtonConfig from "../pages/config/buttonEdit";
 
 const ProtectedRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/login" />;
@@ -43,6 +44,7 @@ const RouterBackend = [
   { path: "/*", element: <NotFound /> },
   { path: "/ticket/create", element: <TicketCreate /> },
   { path: "/ticket/queue_display", element: <QueueDisplay /> },
+  { path: "/config/button_config", element: <ButtonConfig /> },
 
   {
     path: "/",

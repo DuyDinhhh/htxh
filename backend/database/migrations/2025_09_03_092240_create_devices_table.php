@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void {
         Schema::create('devices', function (Blueprint $table) {
-            $table->string('id');
+            $table->string('id')->primary();
             $table->string('name', 255)->nullable();
             $table->string('status', 20)->default('offline');
             $table->timestamp('created_at')->useCurrent()->nullable();

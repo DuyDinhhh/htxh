@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import ConfigService from "../../services/configService";
 
-/* -------- utils -------- */
 const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(val.trim());
@@ -658,6 +657,12 @@ const ConfigEdit = () => {
             >
               Hủy
             </button>
+            <Link
+              to="/config/button_config"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition"
+            >
+              Điều chỉnh dịch vụ
+            </Link>
             <button
               type="submit"
               disabled={saving}

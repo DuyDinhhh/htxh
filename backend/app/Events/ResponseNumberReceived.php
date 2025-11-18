@@ -26,7 +26,7 @@ class ResponseNumberReceived implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        // matches e.payload on the React side
+        \Log::info('Broadcasting event with data: ', $this->data);
         return ['payload' => $this->data];
     }
 }

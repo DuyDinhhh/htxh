@@ -4,11 +4,6 @@ services:
   db:
     image: mysql:8
     restart: always
-    environment:
-      MYSQL_DATABASE: user-feedback-app
-      MYSQL_USER: john
-      MYSQL_PASSWORD: password123
-      MYSQL_ROOT_PASSWORD: password123
     volumes:
       - dbdata:/var/lib/mysql
     ports:
@@ -32,11 +27,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     working_dir: /var/www
-    environment:
-      DB_HOST: db
-      DB_DATABASE: user-feedback-app
-      DB_USERNAME: john
-      DB_PASSWORD: password123
     depends_on:
       - db
     networks:

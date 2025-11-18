@@ -1,0 +1,10 @@
+services:
+  backend:
+    env_file:
+      - ../docker/.env.prod
+
+  db:
+    env_file:
+      - ../docker/.env.prod
+
+

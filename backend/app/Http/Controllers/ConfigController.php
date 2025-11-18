@@ -11,9 +11,9 @@ class ConfigController extends Controller
     {
         $config = Config::first();
 
-        if ($config && $config->photo) {
-            $config->photo = asset('images/config/' . $config->photo);
-        }
+        // if ($config && $config->photo) {
+        //     $config->photo = asset('images/config/' . $config->photo);
+        // }
 
         return response()->json([
             'status' => true,
@@ -66,7 +66,6 @@ class ConfigController extends Controller
             'message' => 'Config created successfully.',
             'config' => $config
         ]);
-
     }
     public function update($id, StoreConfigRequest $request)
     {

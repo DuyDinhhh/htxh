@@ -4,7 +4,7 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow; // 👈 use NOW for immediate send
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;  
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -16,7 +16,7 @@ class ResponseNumberReceived implements ShouldBroadcastNow
 
     public function broadcastOn(): Channel
     {
-        return new Channel('queue.display'); // public channel
+        return new Channel('queue.display'); 
     }
 
     public function broadcastAs(): string

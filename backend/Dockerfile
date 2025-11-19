@@ -18,6 +18,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 
 COPY . .
+
+COPY .env.example .env
+
   
 RUN composer install --no-interaction --prefer-dist --no-dev 
  

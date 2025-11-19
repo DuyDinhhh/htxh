@@ -10,11 +10,6 @@ class ConfigController extends Controller
     public function index()
     {
         $config = Config::first();
-
-        // if ($config && $config->photo) {
-        //     $config->photo = asset('images/config/' . $config->photo);
-        // }
-
         return response()->json([
             'status' => true,
             'message' => 'Config retrieved successfully',

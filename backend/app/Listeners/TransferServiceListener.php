@@ -22,13 +22,11 @@ class TransferServiceListener
      */
     public function handle(ServiceTransfer $event): void
     {
-        \Log::debug("Test 123"); 
         $data = $event -> data;
         $today = Carbon::today()->format('Y-m-d'); 
         $ticket = Ticket::where('ticket_number',$data['number'])
                         ->whereDate('created_at',$today)
                         ->first();
-        \Log::debug("Test ticket: ".$ticket); 
 
         if ($data['position'] === 1) {
             \Log::debug("Position 1: ".$ticket); 

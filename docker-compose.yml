@@ -6,9 +6,9 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: user-feedback-app
-      MYSQL_USER: john
-      MYSQL_PASSWORD: password123
-      MYSQL_ROOT_PASSWORD: password123
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOTPASSWORD}
     volumes:
       - dbdata:/var/lib/mysql
     ports:
@@ -20,26 +20,30 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    restart: unless-stopped
     networks:
       - webnet
     depends_on:
       - backend
     ports:
       - "80:80"
-
  
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     working_dir: /var/www
+    restart: unless-stopped
     environment:
       DB_HOST: db
       DB_DATABASE: user-feedback-app
-      DB_USERNAME: john
-      DB_PASSWORD: password123
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - db
+    volumes:
+      - appdata:/var/www/public
     networks:
       - webnet
 
@@ -48,16 +52,18 @@ services:
       context: ./backend
       dockerfile: Dockerfile.nginx
     container_name: backend-nginx
+    restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - backend
     volumes:
-      - .:/var/www
+      - appdata:/var/www/public:ro
     networks:
       - webnet
 
 volumes:
+  appdata:
   dbdata:
 
 networks:

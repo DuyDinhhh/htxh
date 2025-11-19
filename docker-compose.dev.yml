@@ -1,8 +1,0 @@
-services:
-  backend:
-    env_file:
-      - ../../docker/.env.dev
-  db:
-    env_file:
-      - ../../docker/.env.dev
-

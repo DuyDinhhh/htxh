@@ -138,6 +138,7 @@ const ServiceManagement = () => {
     setLoading(true);
     try {
       const response = await ServiceService.index(page);
+      console.log("Service: ",response);
       const data = response.services;
       setServices(data?.data || []);
       setPagination({

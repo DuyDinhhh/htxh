@@ -57,6 +57,10 @@ const ConfigEdit = () => {
         const res = await ConfigService.index();
         const cfg = res?.config || res || null;
 
+        if (cfg?.photo) {
+          cfg.photo = `${window.location.protocol}//${window.location.hostname}/images/config/` + cfg.photo;
+        }
+        
         if (!cfg || !cfg.id) {
           setConfig(null);
           setConfigId(null);
@@ -221,7 +225,7 @@ const ConfigEdit = () => {
         res = await ConfigService.create(fd);
       } else {
         // For update we send _method=PUT (if your backend expects POST + _method)
-        fd.append("_method", "PUT");
+        fd.append("_method", "POST");
         res = await ConfigService.edit(configId, fd);
       }
 

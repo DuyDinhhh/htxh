@@ -24,7 +24,8 @@ class SpecificNumberListener
         $data = $event -> data;
         $deviceId = $data['device_id'] ?? null;
         $number = $data['number'] ?? null;
-        $clientId = 'publish-' . $data['device_id'];
+        $prefix = env('APP_ENV', "");
+        $clientId = 'publish-' . $data['device_id'].$prefix ;
         config(['mqtt-client.connections.default.client_id' => $clientId]);
         $today = Carbon::today()->format('Y-m-d'); 
 

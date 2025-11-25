@@ -106,7 +106,7 @@ export default function QueueDisplayWithTTS() {
             photoUrl: "/images/agribank-logo.png",
             bg_middle_color: DEFAULT_BG,
             table_header_color: "#f3f4f6",
-            table_row_odd_color: "#ffffff",
+            table_row_odd_color: "#413434ff",
             table_row_even_color: "#fff2f4",
             table_text_color: "#000000",
             table_text_active_color: "#ff0000",

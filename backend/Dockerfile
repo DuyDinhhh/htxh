@@ -19,13 +19,16 @@ WORKDIR /var/www
 
 COPY . .
 
-COPY .env.example .env 
+COPY .env.example .env
 
-RUN composer install && php artisan key:generate
+  
+RUN composer install --no-interaction --prefer-dist --no-dev 
+ 
+RUN chown -R www-data:www-data /var/www
 
-RUN chown -Rf www-data:www-data /var/www
 COPY supervisord.conf /etc/supervisord.conf
-
+ 
 EXPOSE 9000
+ 
 USER www-data
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

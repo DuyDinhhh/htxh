@@ -20,7 +20,8 @@ class MqttSubscribe extends Command
     public function handle()
     {
         $topic = $this->argument('topic');
-        $clientId = 'subscribe-' . $topic;
+        $prefix = env('APP_ENV', "");
+        $clientId = 'subscribe-' . $topic. $prefix;
         config(['mqtt-client.connections.default.client_id' => $clientId]);
         if($topic === 'requestnumber'){
             $devices = Device::select('id', 'name')->get();
@@ -87,3 +88,4 @@ class MqttSubscribe extends Command
     }
 
 }
+

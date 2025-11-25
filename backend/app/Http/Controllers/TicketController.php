@@ -168,7 +168,8 @@ class TicketController extends Controller
                 $ticket->status === "called" ? "Đã gọi" : ($ticket->status === "processing"?
             "Đang xử lí": ($ticket->status === "skipped" ? "Bỏ qua" : "Đang chờ")),
                 $ticket->created_at->format('Y-m-d H:i:s'),
-                $ticket->created_at == $ticket->updated_at ? "" : $ticket->updated_at->format('Y-m-d H:i:s') ,
+                $ticket->created_at == $ticket->updated_at ? "" : ($ticket->updated_at ? $ticket->updated_at->format('Y-m-d H:i:s') : "")
+
             ];
         }
         return $this->downloadExcel($ticket_array, 'ticket.xls');

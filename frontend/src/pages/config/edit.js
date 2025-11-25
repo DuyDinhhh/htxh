@@ -224,7 +224,6 @@ const ConfigEdit = () => {
       if (!configId) {
         res = await ConfigService.create(fd);
       } else {
-        // For update we send _method=PUT (if your backend expects POST + _method)
         fd.append("_method", "POST");
         res = await ConfigService.edit(configId, fd);
       }

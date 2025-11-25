@@ -19,6 +19,10 @@ const ConfigService = {
   saveButton: async (data) => {
     return await httpAxios.post("config/buttons", data);
   },
+
+  reset: async () => {
+    return await httpAxios.get("config/reset");
+  },
 };
 
 export default ConfigService;

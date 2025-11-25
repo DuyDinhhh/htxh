@@ -33,6 +33,8 @@ Route::prefix('config')->group(function(){
     Route::put('/{id}', [ConfigController::class, 'update']); 
     Route::get('/buttons', [ButtonConfigController::class, 'index']);
     Route::post('/buttons', [ButtonConfigController::class, 'save']);
+
+    Route::get('reset',[ConfigController::class, 'resetNumber']);
 });
 
 

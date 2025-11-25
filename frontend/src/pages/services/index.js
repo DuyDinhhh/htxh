@@ -47,7 +47,6 @@ function TrashIcon({ className = "w-4 h-4" }) {
 }
 
 function IconButton({ children, variant = "outline", to, onClick, title }) {
-  // variant: 'outline' | 'danger'
   const base =
     "inline-flex items-center justify-center p-2 rounded-md transition";
   const classes =

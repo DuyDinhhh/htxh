@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Config;
 use App\Http\Requests\Config\StoreConfigRequest;
+use App\Models\Service;
+use App\Models\Ticket;
+use Carbon\Carbon;
+
 class ConfigController extends Controller
 {
     public function index()
@@ -113,6 +117,30 @@ class ConfigController extends Controller
             'status' => true,
             'message' => 'Config updated successfully.',
             'config' => $config
+        ]);
+    }
+
+
+    public function resetNumber(){
+        $services = Service::whereHas('devices')
+            ->whereNull('deleted_at')
+            ->get();
+
+        $today = Carbon::today()->format('Y-m-d');
+        
+        foreach($services as $service){
+            $tickets = Ticket::whereDate('created_at', $today)
+                ->where('ticket_number', 'like', $service->queue_number.'%')            
+                ->get();
+
+            foreach ($tickets as $ticket) {
+                $ticket->sequence = 0;  
+                $ticket->save();
+            }
+        }
+
+        return response()->json([
+            'message'=> "Ticket number reset successfully."
         ]);
     }
 }

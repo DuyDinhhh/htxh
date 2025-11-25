@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import ServiceService from "../../services/serviceService";
-import TicketService from "../../services/ticketService";
+import { useNavigate } from "react-router-dom";
 import ConfigService from "../../services/configService";
 import { toast } from "react-toastify";
 import { debounce } from "lodash";
@@ -44,9 +44,6 @@ const normalizeHex = (val = "") => {
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
-/**
- * Serialize layout -> payload gửi API
- */
 const serializeLayout = (globalDims, perServiceSettings, useFixedOnMobile) => {
   const services = Object.entries(perServiceSettings || {}).map(
     ([serviceId, s]) => ({
@@ -113,6 +110,7 @@ const parseLayoutFromServer = (
  * TicketButtonConfig - trang cấu hình
  */
 const TicketButtonConfig = () => {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
@@ -126,7 +124,6 @@ const TicketButtonConfig = () => {
     vAlign: "center",
   });
 
-  // { [serviceId]: { width, height, hAlign, vAlign, x, y } }
   const [perServiceSettings, setPerServiceSettings] = useState({});
   const [useFixedOnMobile, setUseFixedOnMobile] = useState(false);
 
@@ -762,6 +759,14 @@ const TicketButtonConfig = () => {
             >
               Reset
             </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-2 py-1 rounded bg-green-50 text-green-700 text-xs"
+            >
+              Quay lại
+            </button>
           </div>
         </div>
 
@@ -976,7 +981,6 @@ const TicketButtonConfig = () => {
                     const s = getSettingsFor(service.id);
                     const hasSavedPos =
                       Number.isFinite(s.x) && Number.isFinite(s.y);
-                    // nếu có x,y thì render ở overlay
                     if (hasSavedPos) return null;
 
                     const applyFixed = !isMobile || useFixedOnMobile;
@@ -1087,7 +1091,6 @@ const TicketButtonConfig = () => {
               ))}
             </div>
 
-            {/* overlay: các nút có x,y */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{ zIndex: 150 }}

@@ -659,7 +659,7 @@ const ConfigEdit = () => {
             </button>
             <Link
               to="/config/button_config"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-yellow-600 text-white hover:bg-yellow-200 hover:text-black transition"
             >
               Điều chỉnh dịch vụ
             </Link>

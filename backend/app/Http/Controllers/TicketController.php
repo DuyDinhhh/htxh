@@ -198,4 +198,6 @@ class TicketController extends Controller
             return response()->json(['error' => 'Failed to export Excel.'], 500);
         }
     }
+
+
 }

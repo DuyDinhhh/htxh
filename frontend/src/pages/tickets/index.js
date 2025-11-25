@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import TicketService from "../../services/ticketService";
 import ServiceService from "../../services/serviceService";
 import DeviceService from "../../services/deviceService";
+import ConfigService from "../../services/configService";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -143,6 +144,18 @@ const TicketManagement = () => {
       toast.error("Lỗi khi tải danh sách thiết bị", { autoClose: 500 });
     }
   };
+
+  const handleReset = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn reset số?")) return;
+    try {
+      await ConfigService.reset();
+      toast.success("Reset số thành công!", { autoClose: 800 });
+      fetchServices(pagination.current_page);
+    } catch (err) {
+      toast.error("Lỗi khi reset số. Vui lòng thử lại.");
+    }
+  };
+
   const fetchTickets = async (page = 1) => {
     setLoading(true);
     try {
@@ -274,6 +287,12 @@ const TicketManagement = () => {
           </h2>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleReset}
+            className="bg-[#ca6702] hover:bg-[#ca6702] text-white font-bold py-2 px-4 rounded flex items-center"
+          >
+            <span className="ml-2">Reset số</span>
+          </button>
           <button
             onClick={handleExport}
             className="bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center"

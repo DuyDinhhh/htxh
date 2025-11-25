@@ -7,6 +7,8 @@ use PhpMqtt\Client\Facades\MQTT;
 use Spatie\Activitylog\Models\Activity;
 use App\Models\Device;
 use App\Models\Service;
+use Carbon\Carbon;
+
 class MqttSubscribe extends Command
 {
     protected $signature = 'mqtt:subscribe {topic}';
@@ -20,7 +22,10 @@ class MqttSubscribe extends Command
     public function handle()
     {
         $topic = $this->argument('topic');
-        $clientId = 'subscribe-' . $topic;
+        $currentTime = Carbon::now()->toDateTimeString();
+        $prefix = env('APP_ENV', "");
+        $clientId = $prefix. 'subscribe-' . $topic. $currentTime ;
+
         config(['mqtt-client.connections.default.client_id' => $clientId]);
         if($topic === 'requestnumber'){
             $devices = Device::select('id', 'name')->get();

@@ -150,7 +150,7 @@ const ServiceEdit = () => {
                 onChange={handleChange}
                 placeholder="Nhập tên dịch vụ"
                 className="w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                // disabled
+                disabled
               />
               {errors.name && (
                 <div className="text-red-600 text-sm mt-1">{errors.name}</div>

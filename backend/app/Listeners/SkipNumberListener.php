@@ -25,7 +25,8 @@ class SkipNumberListener
     public function handle(NumberSkip $event): void
     {
         $data = $event -> data;
-        $clientId = 'publish-' . $data['device_id'];
+        $prefix = env('APP_ENV', "");
+        $clientId = 'publish-' . $data['device_id'].$prefix ;
         config(['mqtt-client.connections.default.client_id' => $clientId]);
         $today = Carbon::today()->format('Y-m-d'); 
        

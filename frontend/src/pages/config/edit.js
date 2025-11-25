@@ -224,8 +224,7 @@ const ConfigEdit = () => {
       if (!configId) {
         res = await ConfigService.create(fd);
       } else {
-        // For update we send _method=PUT (if your backend expects POST + _method)
-        fd.append("_method", "PUT");
+        fd.append("_method", "POST");
         res = await ConfigService.edit(configId, fd);
       }
 
@@ -663,7 +662,7 @@ const ConfigEdit = () => {
             </button>
             <Link
               to="/config/button_config"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-md border bg-yellow-600 text-white hover:bg-yellow-200 hover:text-black transition"
             >
               Điều chỉnh dịch vụ
             </Link>

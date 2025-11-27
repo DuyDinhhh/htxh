@@ -287,7 +287,6 @@ const TicketButtonConfig = () => {
             useFixedOnMobileArg
           );
           await ConfigService.saveButton(payload);
-          // Không toast liên tục cho đỡ phiền
         } catch (e) {
           console.error("Lưu cấu hình nút thất bại:", e);
           toast.error("Lưu cấu hình nút thất bại.", { autoClose: 1000 });

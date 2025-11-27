@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_DATABASE: user-feedback-app
+      MYSQL_USER: john
+      MYSQL_PASSWORD: password123
+      MYSQL_ROOT_PASSWORD: password123
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - 13306:3306
+    networks:
+      - webnet    
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - webnet
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+ 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /var/www
+    environment:
+      DB_HOST: db
+      DB_DATABASE: user-feedback-app
+      DB_USERNAME: john
+      DB_PASSWORD: password123
+    depends_on:
+      - db
+    networks:
+      - webnet
+
+  nginx-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.nginx
+    container_name: backend-nginx
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    volumes:
+      - .:/var/www
+    networks:
+      - webnet
+
+volumes:
+  dbdata:
+
+networks:
+  webnet:

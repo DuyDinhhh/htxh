@@ -33,6 +33,8 @@ import ConfigEdit from "../pages/config/edit";
 import ActivityLog from "../pages/logs";
 import DeploymentLog from "../pages/logs/deployment";
 import ButtonConfig from "../pages/config/buttonEdit";
+import QRCTicketGenerator from "../pages/tickets-qr/qr";
+import TicketCreateQR from "../pages/tickets-qr/create-qr";
 
 const ProtectedRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/login" />;
@@ -44,6 +46,9 @@ const RouterBackend = [
   { path: "/*", element: <NotFound /> },
   { path: "/ticket/create", element: <TicketCreate /> },
   { path: "/ticket/queue_display", element: <QueueDisplay /> },
+  { path: "/ticket/qr", element: <QRCTicketGenerator /> },
+  { path: "/ticket/create-qr", element: <TicketCreateQR /> },
+
   { path: "/config/button_config", element: <ButtonConfig /> },
 
   {

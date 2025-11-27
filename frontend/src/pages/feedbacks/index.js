@@ -242,7 +242,7 @@ const FeedbackManagement = () => {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900">
-            Quản lý Feedback
+            Quản lý Đánh giá
           </h2>
         </div>
 

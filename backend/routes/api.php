@@ -33,7 +33,6 @@ Route::prefix('config')->group(function(){
     Route::get('/',[ConfigController::class,'index']);
     Route::post('/', [ConfigController::class, 'store']); 
     Route::post('/{id}', [ConfigController::class, 'update']); 
-
     Route::get('reset',[ConfigController::class, 'resetNumber']);
 });
 

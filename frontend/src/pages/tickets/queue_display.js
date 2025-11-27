@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { echo } from "../../echo";
 import ConfigService from "../../services/configService";
+import { getImageUrl } from "../../services/httpAxios";
 
 const MAX_ROWS = 7;
 const DEFAULT_BG = "#B3AAAA";
 
-const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -71,11 +71,11 @@ export default function QueueDisplayWithTTS() {
         const textTopColor = safeColor(cfg?.text_top_color, "#b10730");
         const textBottomColor = safeColor(cfg?.text_bottom_color, "#b10730");
 
-        const photoUrl = cfg?.photo
-          ? isAbsoluteUrl(cfg.photo)
-            ? cfg.photo
-            : `/images/config/${cfg.photo}`
-          : null;
+        if (cfg?.photo) {
+          cfg.photo = getImageUrl(cfg.photo);
+        }
+
+        const photoUrl = cfg.photo;
 
         if (mounted) {
           setConfig({

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import ConfigService from "../../services/configService";
+import { getImageUrl } from "../../services/httpAxios";
 
 const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
 const isValidHex = (val = "") =>
@@ -56,11 +57,10 @@ const ConfigEdit = () => {
       try {
         const res = await ConfigService.index();
         const cfg = res?.config || res || null;
-
         if (cfg?.photo) {
-          cfg.photo = `${window.location.protocol}//${window.location.hostname}/images/config/` + cfg.photo;
+          cfg.photo = getImageUrl(cfg.photo);
         }
-        
+
         if (!cfg || !cfg.id) {
           setConfig(null);
           setConfigId(null);

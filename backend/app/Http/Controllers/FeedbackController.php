@@ -106,13 +106,12 @@ class FeedbackController extends Controller
         ];
 
         foreach ($feedbacks as $feedback) {
+            $ticket = optional($feedback->ticket); 
             $feedback_array[] = [
-                optional($feedback->ticket->deviceWithTrashed)->name ?? $feedback->device_id,
-                optional($feedback->ticket->serviceWithTrashed)->name ?? $feedback->service_id,
-                // optional($feedback->user)->name ?? $feedback->user_id,  
-                // $feedback->content,
+                optional($ticket->deviceWithTrashed)->name ?? $feedback->device_id,
+                optional($ticket->serviceWithTrashed)->name ?? $feedback->service_id,
                 $feedback->value === 1? "Không hài lòng" :($feedback-> value === 2 ? "Bình thường" : ($feedback -> value === 3 ? "Hài lòng" : "Không hài lòng")),
-                optional($feedback->ticket)->ticket_number ?? $feedback->ticket_id,
+                optional($ticket)->ticket_number ?? $feedback->ticket_id,
                 $feedback->created_at->format('Y-m-d H:i:s'),
             ];
         }

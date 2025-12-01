@@ -28,12 +28,11 @@ Route::prefix('service')->group(function(){
 });
 
 Route::prefix('config')->group(function(){
-    Route::get('/',[ConfigController::class,'index']);
-    Route::post('/', [ConfigController::class, 'store']); 
-    Route::put('/{id}', [ConfigController::class, 'update']); 
     Route::get('/buttons', [ButtonConfigController::class, 'index']);
     Route::post('/buttons', [ButtonConfigController::class, 'save']);
-
+    Route::get('/',[ConfigController::class,'index']);
+    Route::post('/', [ConfigController::class, 'store']); 
+    Route::post('/{id}', [ConfigController::class, 'update']); 
     Route::get('reset',[ConfigController::class, 'resetNumber']);
 });
 

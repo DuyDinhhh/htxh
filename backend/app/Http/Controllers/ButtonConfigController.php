@@ -92,7 +92,7 @@ class ButtonConfigController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-
+            \Log::debug($e);
             return response()->json([
                 'status'  => false,
                 'message' => 'Failed to save ticket button layouts.',

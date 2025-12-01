@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import ServiceService from "../../services/serviceService";
 import { useNavigate } from "react-router-dom";
 import ConfigService from "../../services/configService";
+import { getImageUrl } from "../../services/httpAxios";
 import { toast } from "react-toastify";
 import { debounce } from "lodash";
 
@@ -29,7 +30,6 @@ const chunkArray = (array, size) => {
   return result;
 };
 
-const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -205,11 +205,10 @@ const TicketButtonConfig = () => {
           safeColor(cfg?.bg_bottom_color, null) ||
           safeColor(cfg?.color_bottom, DEFAULT_BG) ||
           DEFAULT_BG;
-        const photoUrl = cfg?.photo
-          ? isAbsoluteUrl(cfg.photo)
-            ? cfg.photo
-            : `/images/config/${cfg.photo}`
-          : null;
+        if (cfg?.photo) {
+          cfg.photo = getImageUrl(cfg.photo);
+        }
+        const photoUrl = cfg.photo;
 
         if (mounted) {
           setConfig({
@@ -287,7 +286,6 @@ const TicketButtonConfig = () => {
             useFixedOnMobileArg
           );
           await ConfigService.saveButton(payload);
-          // Không toast liên tục cho đỡ phiền
         } catch (e) {
           console.error("Lưu cấu hình nút thất bại:", e);
           toast.error("Lưu cấu hình nút thất bại.", { autoClose: 1000 });

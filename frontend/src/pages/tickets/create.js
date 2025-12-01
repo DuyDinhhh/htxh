@@ -4,6 +4,7 @@ import TicketService from "../../services/ticketService";
 import ConfigService from "../../services/configService";
 import { toast } from "react-toastify";
 import { debounce } from "lodash";
+import { getImageUrl } from "../../services/httpAxios";
 
 const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
@@ -20,7 +21,6 @@ const chunkArray = (array, size) => {
   return result;
 };
 
-const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -152,11 +152,11 @@ const TicketDisplay = () => {
           safeColor(cfg?.bg_bottom_color, null) ||
           safeColor(cfg?.color_bottom, DEFAULT_BG) ||
           DEFAULT_BG;
-        const photoUrl = cfg?.photo
-          ? isAbsoluteUrl(cfg.photo)
-            ? cfg.photo
-            : `/images/config/${cfg.photo}`
-          : null;
+
+        if (cfg?.photo) {
+          cfg.photo = getImageUrl(cfg.photo);
+        }
+        const photoUrl = cfg.photo;
 
         if (mounted) {
           setConfig({

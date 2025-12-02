@@ -24,6 +24,7 @@ const NotFound = () => {
           class="text-purple-600 hover:underline dark:text-purple-300"
           to="/"
         >
+          {" "}
           go back
         </Link>
         .

@@ -283,7 +283,7 @@ const TicketManagement = () => {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900">
-            Quản lý Ticket
+            Quản lý Lấy số
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -308,6 +308,16 @@ const TicketManagement = () => {
             className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center"
           >
             <span className="ml-2">Lấy số</span>
+          </Link>
+          <Link
+            to="/ticket/qr"
+            onClick={(e) => {
+              e.preventDefault();
+              window.open("/ticket/qr", "_blank");
+            }}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center"
+          >
+            <span className="ml-2">Lấy số QR</span>
           </Link>
           <Link
             to="/ticket/queue_display"
@@ -497,7 +507,7 @@ const TicketManagement = () => {
                 ) : !tickets.length ? (
                   <tr>
                     <td colSpan={5} className="text-center py-8 text-gray-500">
-                      Không tìm thấy ticket.
+                      Không tìm thấy số.
                     </td>
                   </tr>
                 ) : (
@@ -539,7 +549,7 @@ const TicketManagement = () => {
           <div className="text-sm text-gray-600">
             Trang {pagination.current_page} trên {pagination.last_page} | Hiển
             thị {pagination.from}-{pagination.to} trong tổng số{" "}
-            {pagination.total} ticket
+            {pagination.total} số
           </div>
           <div className="flex items-center gap-2">
             <PaginationButton

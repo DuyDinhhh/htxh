@@ -234,44 +234,44 @@ export function Sidebar({ mobileOpen, setMobileOpen }) {
         <div className="flex flex-col gap-2 rounded-full">
           <SidebarItem
             icon={<HomeIcon />}
-            label="Dashboard"
+            label="Trang chủ"
             to="/dashboards"
             active={isActive("/dashboards")}
           />
           <SidebarItem
             icon={<FileTextIcon />}
-            label="Feedback"
+            label="Đánh giá"
             to="/feedbacks"
             active={isActive("/feedbacks")}
           />
           <SidebarItem
             icon={<ListIcon />}
-            label="Service"
+            label="Dịch vụ"
             to="/services"
             active={isActive("/services")}
           />
           <SidebarItem
             icon={<MonitorIcon />}
-            label="Device"
+            label="Thiết bị"
             to="/devices"
             active={isActive("/devices")}
           />
           <SidebarItem
             icon={<TicketIcon />}
-            label="Ticket"
+            label="Lấy số"
             to="/tickets"
             active={isActive("/tickets")}
           />
           <SidebarItem
             icon={<ConfigIcon />}
-            label="Config"
+            label="Cài đặt"
             to="/config"
             active={isActive("/config")}
           />
 
           <SidebarItem
             icon={<ActivityIcon />}
-            label="Monitoring"
+            label="Giám sát"
             active={isMonitoringOpen}
             onClick={() => setIsMonitoringOpen((prev) => !prev)}
             asButton
@@ -283,7 +283,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }) {
                 icon={
                   <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
                 }
-                label="Logs"
+                label="Thao tác"
                 to="/logs"
                 active={isActive("/logs")}
               />
@@ -291,7 +291,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }) {
                 icon={
                   <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
                 }
-                label="Deployment Logs"
+                label="Hệ thống"
                 to="/deployment_logs"
                 active={isActive("/deployment_logs")}
               />

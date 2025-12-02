@@ -33,6 +33,14 @@ const TicketService = {
       });
     }
   },
+
+  generateNewUrl: async () => {
+    return await httpAxios.get("ticket/generate-new-qr");
+  },
+
+  validateUrl: async (id) => {
+    return await httpAxios.get(`/ticket/validate-qr?id=${id}`);
+  },
 };
 
 export default TicketService;

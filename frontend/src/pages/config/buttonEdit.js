@@ -257,7 +257,7 @@ const TicketButtonConfig = () => {
     const loadButtonLayout = async () => {
       try {
         const res = await ConfigService.getButton();
-        const data = res?.data || res; // tuỳ backend trả
+        const data = res?.data || res;
         parseLayoutFromServer(
           data,
           setGlobalDims,
@@ -266,13 +266,10 @@ const TicketButtonConfig = () => {
         );
       } catch (e) {
         console.error("Không tải được button layout:", e);
-        // fallback giữ default, không toast để đỡ phiền
       }
     };
     loadButtonLayout();
   }, []);
-
-  /** ------------------- REGISTER TICKET ------------------- */
 
   /** ------------------- AUTO SAVE TO DB (DEBOUNCE) ------------------- */
   const saveLayout = useCallback(

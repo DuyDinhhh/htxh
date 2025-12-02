@@ -10,6 +10,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ButtonConfigController;
+use App\Http\Controllers\QRCodeController;
 
 Route::get('/', function () {
     return response()->json(['message' => 'Hello world!']);
@@ -36,7 +37,6 @@ Route::prefix('config')->group(function(){
     Route::get('reset',[ConfigController::class, 'resetNumber']);
 });
 
-
 Route::prefix('device')->group(function(){
     Route::get('/',[DeviceController::class,'index']);
     Route::get('/list',[DeviceController::class,'list']);
@@ -49,6 +49,9 @@ Route::prefix('/ticket')->group(function(){
     Route::post('/{id}',[TicketController::class,'store']);
     Route::get('/queue_display',[TicketController::class,'queue_display']);
     Route::get('/export',[TicketController::class,'export']);
+
+    Route::get('/validate-qr', [QRCodeController::class, 'validateQR']);
+    Route::get('/generate-new-qr', [QRCodeController::class, 'generateNewQR']);
 });
 
 Route::get('/debug',[TicketController::class,'debug']);

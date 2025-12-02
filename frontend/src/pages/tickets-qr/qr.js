@@ -3,6 +3,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "react-toastify";
 import ConfigService from "../../services/configService";
 import { getImageUrl } from "../../services/httpAxios";
+import TicketService from "../../services/ticketService";
 
 const DEFAULT_BG = "#B3AAAA";
 const isValidHex = (val = "") =>
@@ -18,20 +19,56 @@ const normalizeHex = (val = "") => {
 };
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
-const QRCTicketGenerator = () => {
-  const [url, setUrl] = useState("http://10.10.1.95:3000/ticket/create-qr");
 
-  const generateNewUrl = () => {
-    const randomSuffix = Math.random().toString(36).substring(7);
-    setUrl(`http://10.10.1.95:3000/ticket/create-qr/?id=${randomSuffix}`);
+const QRCTicketGenerator = () => {
+  const [url, setUrl] = useState("");
+  const prefix = `${window.location.protocol}//${window.location.host}/ticket/create-qr`;
+
+  const [countdown, setCountdown] = useState(30); // Initial countdown value
+
+  const generateNewUrl = async () => {
+    try {
+      const response = await TicketService.generateNewUrl();
+      const randomSuffix = response.id;
+      setUrl(`${prefix}?id=${randomSuffix}`);
+      setCountdown(30); // Reset countdown whenever a new QR code is generated
+    } catch (err) {
+      console.log(err);
+      setUrl([]);
+      toast.error("Lỗi khi tạo mã QR", { autoClose: 500 });
+    }
   };
 
+  // Countdown Timer Logic - will run continuously
+  useEffect(() => {
+    const countdownInterval = setInterval(() => {
+      setCountdown((prevCountdown) => {
+        if (prevCountdown <= 1) {
+          return 0; // Stop countdown at 0 but don't clear the interval
+        }
+        return prevCountdown - 1; // Decrease countdown by 1
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownInterval); // Cleanup on unmount
+  }, []); // The countdown interval runs only once when the component mounts
+
+  // Effect to refresh the QR code and countdown every 30 seconds
+  useEffect(() => {
+    generateNewUrl(); // Initial QR code generation
+
+    const intervalId = setInterval(() => {
+      generateNewUrl(); // Regenerate QR code and reset countdown every 30 seconds
+    }, 30000); // 30 seconds interval
+
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, []); // The QR code and countdown will be refreshed once when the component mounts
+
+  // Config loading logic
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
   useEffect(() => {
-    const intervalId = setInterval(generateNewUrl, 60000);
-
     let mounted = true;
     const loadConfig = async () => {
       setLoadingConfig(true);
@@ -97,7 +134,6 @@ const QRCTicketGenerator = () => {
 
     return () => {
       mounted = false;
-      clearInterval(intervalId);
     };
   }, []);
 
@@ -107,6 +143,7 @@ const QRCTicketGenerator = () => {
     config?.bg_bottom_color ?? config?.color_bottom ?? DEFAULT_BG;
   const footerTextColor = config?.text_bottom_color ?? headerTextColor;
   const logoSrc = config?.photoUrl ?? "/images/agribank-logo.png";
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
       <header
@@ -126,13 +163,17 @@ const QRCTicketGenerator = () => {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-8 w-full">
+      <main className="flex-1 flex flex-col items-center justify-center px-8 w-full">
         <QRCodeCanvas
           value={url}
           size={300}
           fgColor="#000000"
           bgColor="#FFFFFF"
         />
+        <p
+          className="text-lg font-semibold text-center mt-2"
+          style={{ color: headerTextColor }}
+        >{`${countdown}s`}</p>
       </main>
 
       <footer

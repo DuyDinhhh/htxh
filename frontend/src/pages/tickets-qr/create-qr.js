@@ -5,6 +5,7 @@ import ConfigService from "../../services/configService";
 import { toast } from "react-toastify";
 import { debounce } from "lodash";
 import { getImageUrl } from "../../services/httpAxios";
+import { useLocation, useNavigate } from "react-router-dom";
 const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
 const DEFAULT_BUTTON_BG = "#8B4513";
@@ -17,7 +18,6 @@ const chunkArray = (array, size) => {
   return result;
 };
 
-const isAbsoluteUrl = (url = "") => /^https?:\/\//i.test(url);
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -36,11 +36,42 @@ const TicketCreateQR = () => {
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [registering, setRegistering] = useState({});
-
+  const [error, setError] = useState(null);
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
   const [number, setNumber] = useState(null);
+  const navigate = useNavigate();
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const id = queryParams.get("id");
+
+  useEffect(() => {
+    if (!id) {
+      setError("Invalid QR code, missing ID");
+      navigate("/error");
+      return;
+    }
+
+    const validateUrl = async () => {
+      try {
+        const response = await TicketService.validateUrl(id);
+        if (response.status === true) {
+          // console.log("QR code is valid.");
+        } else {
+          setError("QR code expired or invalid.");
+          navigate("/notfound");
+        }
+      } catch (err) {
+        setError("Failed to validate QR code");
+        console.error("Error during validation:", err);
+        navigate("/notfound");
+      }
+    };
+
+    validateUrl();
+  }, [id, navigate]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -136,7 +167,7 @@ const TicketCreateQR = () => {
         setRegistering((prev) => ({ ...prev, [id]: true }));
         try {
           const response = await TicketService.register(id);
-          console.log(response);
+          // console.log(response);
           if (response.status) {
             setNumber(response.ticket.ticket_number);
           }

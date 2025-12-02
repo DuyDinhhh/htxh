@@ -46,6 +46,7 @@ const RouterBackend = [
   { path: "/*", element: <NotFound /> },
   { path: "/ticket/create", element: <TicketCreate /> },
   { path: "/ticket/queue_display", element: <QueueDisplay /> },
+
   { path: "/ticket/qr", element: <QRCTicketGenerator /> },
   { path: "/ticket/create-qr", element: <TicketCreateQR /> },
 

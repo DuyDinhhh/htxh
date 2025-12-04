@@ -24,14 +24,14 @@ const QRCTicketGenerator = () => {
   const [url, setUrl] = useState("");
   const prefix = `${window.location.protocol}//${window.location.host}/ticket/create-qr`;
 
-  const [countdown, setCountdown] = useState(30); // Initial countdown value
+  const [countdown, setCountdown] = useState(30);
 
   const generateNewUrl = async () => {
     try {
       const response = await TicketService.generateNewUrl();
       const randomSuffix = response.id;
       setUrl(`${prefix}?id=${randomSuffix}`);
-      setCountdown(30); // Reset countdown whenever a new QR code is generated
+      setCountdown(30);
     } catch (err) {
       console.log(err);
       setUrl([]);
@@ -39,30 +39,27 @@ const QRCTicketGenerator = () => {
     }
   };
 
-  // Countdown Timer Logic - will run continuously
   useEffect(() => {
     const countdownInterval = setInterval(() => {
       setCountdown((prevCountdown) => {
         if (prevCountdown <= 1) {
-          return 0; // Stop countdown at 0 but don't clear the interval
+          return 0;
         }
-        return prevCountdown - 1; // Decrease countdown by 1
+        return prevCountdown - 1;
       });
     }, 1000);
 
-    return () => clearInterval(countdownInterval); // Cleanup on unmount
-  }, []); // The countdown interval runs only once when the component mounts
-
-  // Effect to refresh the QR code and countdown every 30 seconds
+    return () => clearInterval(countdownInterval);
+  }, []);
   useEffect(() => {
-    generateNewUrl(); // Initial QR code generation
+    generateNewUrl();
 
     const intervalId = setInterval(() => {
-      generateNewUrl(); // Regenerate QR code and reset countdown every 30 seconds
-    }, 30000); // 30 seconds interval
+      generateNewUrl();
+    }, 30000);
 
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, []); // The QR code and countdown will be refreshed once when the component mounts
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Config loading logic
   const [config, setConfig] = useState(null);

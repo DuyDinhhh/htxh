@@ -9,6 +9,7 @@ const DEFAULT_BG = "#B3AAAA";
 
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
+
 const normalizeHex = (val = "") => {
   const v = (val || "").trim();
   if (/^#([0-9A-Fa-f]{6})$/.test(v)) return v.toLowerCase();
@@ -18,12 +19,14 @@ const normalizeHex = (val = "") => {
   }
   return v;
 };
+
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
 export default function QueueDisplayWithTTS() {
   const ttsQueueRef = useRef([]);
   const isSpeakingRef = useRef(false);
+  const audioRef = useRef(null);
 
   const [tickets, setTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
@@ -31,16 +34,151 @@ export default function QueueDisplayWithTTS() {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [ttsEnabled, setTtsEnabled] = useState(false);
-  const voiceRef = useRef(null);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const firstLoadRef = useRef(true);
 
   const prevTopIdRef = useRef(null);
   const prevTopUpdatedMsRef = useRef(0);
 
+  const audioCache = useRef({});
+
+  useEffect(() => {
+    const preloadAudio = () => {
+      const files = [
+        "xinmoiso",
+        "denquayso",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+      ];
+
+      files.forEach((file) => {
+        try {
+          const audio = new Audio(`/audio/${file}.mp3`);
+          audio.preload = "auto";
+          audio.load();
+          audioCache.current[file] = audio;
+        } catch (error) {
+          console.error(`Failed to preload audio: ${file}`, error);
+        }
+      });
+    };
+
+    preloadAudio();
+
+    // Cleanup on unmount
+    return () => {
+      Object.values(audioCache.current).forEach((audio) => {
+        if (audio) {
+          audio.pause();
+          audio.src = "";
+        }
+      });
+      audioCache.current = {};
+    };
+  }, []);
+
+  // ---------- Play audio sequence ----------
+  const playAudioSequence = async (audioFiles) => {
+    if (!ttsEnabled || audioFiles.length === 0) {
+      return;
+    }
+
+    for (let i = 0; i < audioFiles.length; i++) {
+      const fileName = audioFiles[i];
+      const audio = audioCache.current[fileName];
+
+      if (!audio) {
+        console.error(`Audio file not found in cache: ${fileName}`);
+        continue;
+      }
+
+      try {
+        const audioClone = audio.cloneNode();
+        audioRef.current = audioClone;
+
+        // Play and wait for it to finish
+        await new Promise((resolve, reject) => {
+          audioClone.onended = resolve;
+          audioClone.onerror = (e) => {
+            console.error(`Error playing ${fileName}:`, e);
+            reject(e);
+          };
+
+          const playPromise = audioClone.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(reject);
+          }
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`Error in audio sequence for ${fileName}:`, error);
+      }
+    }
+  };
+
+  // ---------- Add to TTS queue ----------
+  const speakMulti = (ticketStr, counterStr) => {
+    if (!ttsEnabled) return;
+    ttsQueueRef.current.push({ ticketStr, counterStr });
+    if (!isSpeakingRef.current) {
+      processTTSQueue();
+    }
+  };
+
+  // ---------- Process TTS queue ----------
+  const processTTSQueue = async () => {
+    if (isSpeakingRef.current) return;
+    if (ttsQueueRef.current.length === 0) return;
+
+    const { ticketStr, counterStr } = ttsQueueRef.current.shift();
+    isSpeakingRef.current = true;
+
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch (e) {}
+    }
+
+    const audioSequence = [];
+    audioSequence.push("xinmoiso");
+    const ticketDigits = ticketStr.replace(/\s+/g, "").split("");
+    ticketDigits.forEach((char) => {
+      if (/[0-9]/.test(char)) {
+        audioSequence.push(char);
+      }
+    });
+
+    audioSequence.push("denquayso");
+
+    const counterDigits = counterStr.replace(/\s+/g, "").split("");
+    counterDigits.forEach((char) => {
+      if (/[0-9]/.test(char)) {
+        audioSequence.push(char);
+      }
+    });
+
+    await playAudioSequence(audioSequence);
+
+    setTimeout(() => {
+      isSpeakingRef.current = false;
+      processTTSQueue();
+    }, 1000);
+  };
+
   // ---------- Load CONFIG once ----------
   useEffect(() => {
     let mounted = true;
+
     const loadConfig = async () => {
       setLoadingConfig(true);
       try {
@@ -96,6 +234,7 @@ export default function QueueDisplayWithTTS() {
           });
         }
       } catch (e) {
+        console.error("Error loading config:", e);
         if (mounted) {
           setConfig({
             text_top: "Ngân hàng Agribank - Chi nhánh Bắc Đồng Nai",
@@ -121,89 +260,18 @@ export default function QueueDisplayWithTTS() {
         if (mounted) setLoadingConfig(false);
       }
     };
+
     loadConfig();
+
     return () => {
       mounted = false;
     };
   }, []);
 
-  // ---------- Voice pick ----------
-  useEffect(() => {
-    const pickVoice = () => {
-      if (!window.speechSynthesis) return;
-      const voices = window.speechSynthesis.getVoices?.() || [];
-      const vietnameseVoices = voices.filter(
-        (v) =>
-          v.lang?.toLowerCase().startsWith("vi-vn") && !v.name.includes("Linh") // Loại trừ bất kỳ giọng
-      );
-
-      voiceRef.current =
-        vietnameseVoices.find((v) => v.name.includes("Google Tiếng Việt")) ||
-        vietnameseVoices.find((v) => v.name.includes("Microsoft")) ||
-        vietnameseVoices[0] ||
-        null;
-
-      console.log(
-        "🎙️ Using voice:",
-        voiceRef.current?.name,
-        voiceRef.current?.lang
-      );
-    };
-    pickVoice();
-    if (window.speechSynthesis)
-      window.speechSynthesis.onvoiceschanged = pickVoice;
-    return () => {
-      if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = null;
-    };
-  }, []);
-
-  const speakMulti = (ticketStr, counterStr) => {
-    if (!ttsEnabled || !window.speechSynthesis) return;
-    ttsQueueRef.current.push({ ticketStr, counterStr });
-    if (!isSpeakingRef.current) processTTSQueue();
-  };
-
-  const processTTSQueue = () => {
-    if (isSpeakingRef.current) return;
-    if (ttsQueueRef.current.length === 0) return;
-
-    const { ticketStr, counterStr } = ttsQueueRef.current.shift();
-    isSpeakingRef.current = true;
-
-    window.speechSynthesis.cancel();
-
-    const voice = voiceRef.current;
-    const createUtter = (text, rate) => {
-      const u = new SpeechSynthesisUtterance(text);
-      if (voice) u.voice = voice;
-      u.lang = voice?.lang || "vi-VN";
-      u.pitch = 1;
-      u.rate = rate;
-      return u;
-    };
-
-    const p1 = createUtter("Mời số", 0.7);
-    const p2 = createUtter(ticketStr, 0.3);
-    const p3 = createUtter("đến quầy số", 0.7);
-    const p4 = createUtter(counterStr, 0.7);
-
-    p1.onend = () => window.speechSynthesis.speak(p2);
-    p2.onend = () => window.speechSynthesis.speak(p3);
-    p3.onend = () => window.speechSynthesis.speak(p4);
-
-    p4.onend = () => {
-      setTimeout(() => {
-        isSpeakingRef.current = false;
-        processTTSQueue();
-      }, 1000);
-    };
-
-    window.speechSynthesis.speak(p1);
-  };
-
   // ---------- Echo channel for tickets ----------
   useEffect(() => {
     let firstEvent = true;
+
     const channel = echo
       .channel("queue.display")
       .listen(".ResponseNumberReceived", (e) => {
@@ -270,10 +338,13 @@ export default function QueueDisplayWithTTS() {
       try {
         channel.stopListening(".ResponseNumberReceived");
         echo.leave("queue.display");
-      } catch {}
+      } catch (e) {
+        // Ignore cleanup errors
+      }
     };
   }, []);
 
+  // ---------- Watch for ticket changes and trigger TTS ----------
   useEffect(() => {
     if (!tickets || tickets.length === 0) return;
 
@@ -304,9 +375,8 @@ export default function QueueDisplayWithTTS() {
       prevTopUpdatedMsRef.current = topUpdatedMs;
 
       const ticketPartRaw = String(top?.ticket_number ?? "")
-        .replace(/\s+/g, " ")
+        .replace(/\s+/g, "")
         .trim();
-      const ticketPart = ticketPartRaw.split("").join("  ");
 
       let rawCounter = String(top?.device?.name ?? "")
         .replace(/\s+/g, " ")
@@ -314,10 +384,13 @@ export default function QueueDisplayWithTTS() {
       rawCounter = rawCounter.replace(/^qu(â|a)y\s*/i, "").trim();
       const parts = rawCounter.split(" ");
       const lastPart = parts[parts.length - 1];
-      speakMulti(ticketPart, lastPart);
+
+      // Trigger TTS
+      speakMulti(ticketPartRaw, lastPart);
     }
   }, [tickets, ttsEnabled]);
 
+  // ---------- Style variables ----------
   const headerBg = config?.bg_top_color ?? config?.color_top ?? DEFAULT_BG;
   const headerTextColor = config?.text_top_color ?? "#b10730";
   const footerBg =
@@ -335,19 +408,13 @@ export default function QueueDisplayWithTTS() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
+      {/* Header */}
       <header
         className="w-full flex-none flex flex-col justify-center items-center py-2 relative"
         style={{ backgroundColor: headerBg }}
       >
         <button
-          onClick={() => {
-            if (!ttsEnabled) {
-              try {
-                window.speechSynthesis?.speak(new SpeechSynthesisUtterance(""));
-              } catch {}
-            }
-            setTtsEnabled((v) => !v);
-          }}
+          onClick={() => setTtsEnabled((v) => !v)}
           className={`absolute top-2 right-2 px-3 py-1 rounded-xl text-sm font-semibold border shadow`}
           title={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
           aria-label={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
@@ -358,7 +425,6 @@ export default function QueueDisplayWithTTS() {
           }}
         >
           {ttsEnabled ? (
-            // Speaker ON icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -374,7 +440,6 @@ export default function QueueDisplayWithTTS() {
               />
             </svg>
           ) : (
-            // Speaker OFF icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -405,6 +470,7 @@ export default function QueueDisplayWithTTS() {
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-8 w-full">
         {isLoadingAll ? (
           <div className="text-center text-gray-300">Chưa có dữ liệu</div>
@@ -415,8 +481,8 @@ export default function QueueDisplayWithTTS() {
         ) : (
           <div className="w-full max-w-3xl">
             <div
-              className="overflow-x-auto bg-white rounded-lg shadow"
-              style={{ border: `2px solid ${borderAccent}` }}
+              className="overflow-hidden bg-white rounded-2xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl"
+              style={{ borderColor: borderAccent }}
             >
               <table className="min-w-[520px] w-full table-auto border-collapse">
                 <thead
@@ -425,18 +491,20 @@ export default function QueueDisplayWithTTS() {
                 >
                   <tr>
                     <th
-                      className="px-4 py-3 text-2xl text-center"
+                      className="px-4 py-3 w-[400px] text-2xl text-center"
                       style={{
-                        border: `1px solid ${borderAccent}`,
+                        border: ` ${borderAccent}`,
+                        borderRight: `1px solid ${borderAccent}`,
+
                         color: tableTextColor,
                       }}
                     >
                       Số thứ tự
                     </th>
                     <th
-                      className="px-4 py-3 text-2xl text-center"
+                      className="px-4 py-3 w-[400px] text-2xl text-center"
                       style={{
-                        border: `1px solid ${borderAccent}`,
+                        border: `${borderAccent}`,
                         color: tableTextColor,
                       }}
                     >
@@ -455,7 +523,11 @@ export default function QueueDisplayWithTTS() {
                       >
                         <td
                           className="px-4 py-3 text-2xl text-center"
-                          style={{ border: `1px solid ${borderAccent}` }}
+                          style={{
+                            borderTop: `1px solid ${borderAccent}`,
+                            borderRight: `1px solid ${borderAccent}`,
+                            color: tableTextColor,
+                          }}
                         >
                           <span
                             style={{
@@ -463,16 +535,20 @@ export default function QueueDisplayWithTTS() {
                                 ? tableTextActive
                                 : tableTextColor,
                               fontWeight: isMostRecent ? 800 : 500,
+                              fontSize: isMostRecent && "30px",
                             }}
+                            className={isMostRecent ? "flicker" : ""}
                           >
                             {item.ticket_number}
                           </span>
                         </td>
                         <td
-                          className="px-4 py-3 text-center text-2xl font-bold"
+                          className="px-4 py-3 text-center text-2xl font-bold ${} "
                           style={{
-                            border: `1px solid ${borderAccent}`,
+                            borderLeft: `1px solid ${borderAccent}`,
+                            borderTop: `1px solid ${borderAccent}`,
                             color: tableTextColor,
+                            fontSize: isMostRecent && "30px",
                           }}
                         >
                           {item.device?.name}
@@ -487,6 +563,7 @@ export default function QueueDisplayWithTTS() {
         )}
       </main>
 
+      {/* Footer */}
       <footer
         className="w-full flex-none flex flex-col justify-center items-center py-4 overflow-hidden"
         style={{ backgroundColor: footerBg }}
@@ -502,6 +579,38 @@ export default function QueueDisplayWithTTS() {
           {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
         </div>
       </footer>
+      <style jsx>{`
+        @keyframes flicker {
+          0% {
+            opacity: 1;
+          }
+          25% {
+            opacity: 0.6;
+          }
+          50% {
+            opacity: 0.2;
+          }
+          75% {
+            opacity: 0.6;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+
+        .flicker {
+          animation: flicker 3s forwards;
+        }
+
+        @keyframes marquee {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -40,7 +40,10 @@ const TicketCreateQR = () => {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [number, setNumber] = useState(null);
+  // const [number, setNumber] = useState(null);
+  const [number, setNumber] = useState(() => {
+    return sessionStorage.getItem("ticket_number") || null;
+  });
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -58,10 +61,11 @@ const TicketCreateQR = () => {
       try {
         const response = await TicketService.validateUrl(id);
         if (response.status === true) {
-          // console.log("QR code is valid.");
         } else {
           setError("QR code expired or invalid.");
-          navigate("/notfound");
+          if (!number) {
+            navigate("/notfound");
+          }
         }
       } catch (err) {
         setError("Failed to validate QR code");
@@ -69,7 +73,6 @@ const TicketCreateQR = () => {
         navigate("/notfound");
       }
     };
-
     validateUrl();
   }, [id, navigate]);
 
@@ -167,13 +170,16 @@ const TicketCreateQR = () => {
         setRegistering((prev) => ({ ...prev, [id]: true }));
         try {
           const response = await TicketService.register(id);
-          // console.log(response);
           if (response.status) {
             setNumber(response.ticket.ticket_number);
+            sessionStorage.setItem(
+              "ticket_number",
+              response.ticket.ticket_number
+            );
           }
-          toast.success(response?.message || "Lấy số thành công.", {
-            autoClose: 500,
-          });
+          // toast.success(response?.message || "Lấy số thành công.", {
+          //   autoClose: 500,
+          // });
         } catch (err) {
           toast.error(
             err?.response?.data?.message || "Đăng ký số thứ tự thất bại.",
@@ -225,20 +231,10 @@ const TicketCreateQR = () => {
           {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
         </div>
       </header>
-
-      <main className="flex-1 flex items-center justify-center p-4 sm:px-6 md:px-8 overflow-y-auto md:overflow-hidden">
+      <main className="flex-1 flex flex-col px-4 py-2 sm:px-6 md:px-8 overflow-hidden">
         {number ? (
-          <div className="mt-4 w-full overflow-hidden text-center">
-            {/* <p className="text-2xl">Số thứ tự của bạn là: </p> */}
+          <div className="flex flex-col items-center justify-center h-full">
             <p className="font-bold text-9xl">{number}</p>
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={() => setNumber(null)}
-                className="bg-red-500 text-white py-1 px-5 rounded"
-              >
-                Lấy số mới
-              </button>
-            </div>
           </div>
         ) : isLoadingAll ? (
           <div className="text-center text-gray-300">Đang tải...</div>
@@ -247,62 +243,48 @@ const TicketCreateQR = () => {
             Không tìm thấy dịch vụ.
           </div>
         ) : (
-          <div
-            className={`
-        grid w-full max-w-7xl mx-auto h-full
-        justify-items-center
-        grid-cols-1 grid-flow-row
-        gap-y-2 gap-x-3
-
-        md:grid-flow-col
-        md:auto-cols-[420px]
-        md:[grid-template-rows:repeat(5,1fr)]
-        md:[grid-auto-rows:calc((100%_-_0.5rem*4)/5)]
-
-        md:w-auto            
-        md:justify-center     
-        md:inline-grid       
-      `}
-          >
-            {services.map((service) => (
-              <button
-                key={service.id}
-                disabled={registering[service.id]}
-                onClick={() => handleRegister(service.id)}
-                className={`
-            w-full md:w-[420px] max-w-[420px]
-            h-full
-            rounded text-white shadow transition
-            uppercase font-semibold
-            text-xl sm:text-2xl md:text-2xl
-            p-2 sm:p-3 md:p-4
-            flex items-center justify-center text-center
-            whitespace-normal break-words leading-tight
-            ${
-              registering[service.id]
-                ? "opacity-60 cursor-not-allowed"
-                : "hover:brightness-90"
-            }
-          `}
-                style={{
-                  backgroundColor:
-                    safeColor(service.color, null) || DEFAULT_BUTTON_BG,
-                }}
-              >
-                <span
-                  className="block"
+          <div className="flex-1 overflow-y-auto">
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto gap-y-2">
+              {services.map((service) => (
+                <button
+                  key={service.id}
+                  disabled={registering[service.id]}
+                  onClick={() => handleRegister(service.id)}
+                  className={`
+              w-full max-w-[420px]
+              h-[85px]  // Fixed height for each button
+              rounded text-white shadow transition
+              uppercase font-semibold
+              text-xl sm:text-2xl md:text-2xl
+              p-2 sm:p-3 md:p-4
+              text-center
+              whitespace-normal break-words leading-tight
+              ${
+                registering[service.id]
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:brightness-90"
+              }
+            `}
                   style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    backgroundColor:
+                      safeColor(service.color, null) || DEFAULT_BUTTON_BG,
                   }}
                 >
-                  {service.name}
-                </span>
-              </button>
-            ))}
+                  <span
+                    className="block"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {service.name}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </main>

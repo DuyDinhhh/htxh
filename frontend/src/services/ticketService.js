@@ -27,7 +27,7 @@ const TicketService = {
         headers: { Authorization: `Bearer ${token}` },
       });
     } else {
-      return await httpAxios.get("feedback/export", {
+      return await httpAxios.get("ticket/export", {
         params,
         responseType: "blob",
       });

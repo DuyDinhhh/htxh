@@ -64,16 +64,10 @@ class MqttSubscribe extends Command
             }elseif ($topic === 'transfernumber'){
                 event(new \App\Events\NumberTransfer($data));
             }elseif ($topic === 'device/register'){
-                \Log::debug("I was here");
                 event(new \App\Events\DeviceRegister($data));
             }elseif ($topic === 'transferservice'){
-                \Log::debug("Test 234");
                 event(new \App\Events\ServiceTransfer($data));
-            }elseif ($topic === 'responsenumber'){
-                if ($data['number']!== "NoAvailable" ){
-                    event(new \App\Events\ResponseNumberReceived($data));
-                }
-            }else {
+            } else {
                 \Log::debug('default subscribee');
             }
         });

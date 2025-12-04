@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { echo } from "../../echo";
 import ConfigService from "../../services/configService";
 import { getImageUrl } from "../../services/httpAxios";
+import mqtt from "mqtt";
 
 const MAX_ROWS = 7;
 const DEFAULT_BG = "#B3AAAA";
@@ -34,7 +34,7 @@ export default function QueueDisplayWithTTS() {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const firstLoadRef = useRef(true);
 
   const prevTopIdRef = useRef(null);
@@ -73,7 +73,6 @@ export default function QueueDisplayWithTTS() {
 
     preloadAudio();
 
-    // Cleanup on unmount
     return () => {
       Object.values(audioCache.current).forEach((audio) => {
         if (audio) {
@@ -104,7 +103,6 @@ export default function QueueDisplayWithTTS() {
         const audioClone = audio.cloneNode();
         audioRef.current = audioClone;
 
-        // Play and wait for it to finish
         await new Promise((resolve, reject) => {
           audioClone.onended = resolve;
           audioClone.onerror = (e) => {
@@ -268,78 +266,72 @@ export default function QueueDisplayWithTTS() {
     };
   }, []);
 
-  // ---------- Echo channel for tickets ----------
+  // MQTT Config
+  const mqttHost = "ws://10.10.1.21:8083/mqtt";
+  const topic = "responsenumber";
+
+  const mqttUsername = "appuser";
+  const mqttPassword = "1111";
+
   useEffect(() => {
-    let firstEvent = true;
+    const client = mqtt.connect(mqttHost, {
+      username: mqttUsername,
+      password: mqttPassword,
+    });
 
-    const channel = echo
-      .channel("queue.display")
-      .listen(".ResponseNumberReceived", (e) => {
-        const payload = e?.payload ?? {};
-        const row = {
-          id: `${payload.device_id ?? ""}-${payload.number ?? ""}`,
-          ticket_number: payload.number ?? "",
-          device: {
-            id: payload.device_id ?? "",
-            name: payload.device_name || "",
-          },
-          called_at: payload.called_at ?? null,
-          recalled_at: payload.recalled_at ?? null,
-          updated_at:
-            payload.updated_at ??
-            payload.recalled_at ??
-            payload.called_at ??
-            new Date().toISOString(),
-        };
-
-        const isRecall =
-          Boolean(payload.is_recall) ||
-          String(payload.action || "").toLowerCase() === "recall" ||
-          Boolean(payload.recalled_at);
-
-        setTickets((prev) => {
-          const key = (x) =>
-            `${x.ticket_number ?? ""}|${x.device?.id ?? x.device?.name ?? ""}`;
-          const idx = prev.findIndex((t) => key(t) === key(row));
-
-          if (idx >= 0) {
-            if (isRecall) {
-              const next = [...prev];
-              next[idx] = { ...next[idx], ...row };
-              return next;
-            } else {
-              const updated = { ...prev[idx], ...row };
-              const without = prev.filter((_, i) => i !== idx);
-              return [updated, ...without].slice(0, MAX_ROWS);
-            }
-          } else {
-            if (isRecall) {
-              const next = [...prev, row];
-              return next.slice(0, MAX_ROWS);
-            } else {
-              const next = [row, ...prev];
-              return next.slice(0, MAX_ROWS);
-            }
-          }
-        });
-
-        if (firstEvent) {
-          setLoadingTickets(false);
-          firstEvent = false;
+    client.on("connect", () => {
+      console.log("Connected to MQTT broker!");
+      setLoadingTickets(false);
+      client.subscribe(topic, { qos: 1 }, (error) => {
+        if (error) {
+          console.error("Subscription error:", error);
+        } else {
+          console.log(`Subscribed to topic: ${topic}`);
         }
       });
+    });
 
-    channel.error?.((err) => {
-      console.error("Echo channel error:", err);
+    client.on("message", (receivedTopic, message) => {
+      try {
+        const payload = JSON.parse(message.toString());
+        // console.log(`Received message on topic "${receivedTopic}":`, payload);
+
+        if (payload.number !== "NoAvailable") {
+          const row = {
+            id: `${payload.device_id}-${payload.number}`,
+            ticket_number: payload.number ?? "",
+            device: {
+              id: payload.device_id ?? "",
+              name: payload.device_name || "",
+            },
+            called_at: payload.called_at ?? null,
+            recalled_at: payload.recalled_at ?? null,
+            updated_at: payload.updated_at ?? new Date().toISOString(),
+          };
+
+          setTickets((prev) => {
+            const newTickets = [row, ...prev.filter((t) => t.id !== row.id)];
+            console.log("Updated tickets:", newTickets.slice(0, MAX_ROWS));
+            return newTickets.slice(0, MAX_ROWS);
+          });
+        } else {
+          // console.log("Skipped NoAvailable message");
+        }
+      } catch (error) {
+        console.error("Error processing MQTT message:", error);
+      }
+    });
+
+    client.on("error", (error) => {
+      console.error("MQTT error:", error);
       toast.error("Mất kết nối. Đang thử kết nối lại…");
     });
 
     return () => {
-      try {
-        channel.stopListening(".ResponseNumberReceived");
-        echo.leave("queue.display");
-      } catch (e) {
-        // Ignore cleanup errors
+      if (client.connected) {
+        client.unsubscribe(topic);
+        client.end();
+        console.log("Disconnected from MQTT broker.");
       }
     };
   }, []);

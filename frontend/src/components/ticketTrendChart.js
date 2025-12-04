@@ -144,7 +144,6 @@ const TicketTrendChart = () => {
 
   return (
     <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg p-6 my-5 border border-gray-100">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -187,7 +186,6 @@ const TicketTrendChart = () => {
         )}
       </div>
 
-      {/* Chart Content */}
       {loading ? (
         <LoadingSkeleton />
       ) : error ? (

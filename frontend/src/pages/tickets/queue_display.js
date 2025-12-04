@@ -34,13 +34,12 @@ export default function QueueDisplayWithTTS() {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const firstLoadRef = useRef(true);
 
   const prevTopIdRef = useRef(null);
   const prevTopUpdatedMsRef = useRef(0);
 
-  // Audio cache for preloaded files
   const audioCache = useRef({});
 
   useEffect(() => {
@@ -102,7 +101,6 @@ export default function QueueDisplayWithTTS() {
       }
 
       try {
-        // Clone audio element to allow overlapping plays
         const audioClone = audio.cloneNode();
         audioRef.current = audioClone;
 
@@ -144,17 +142,13 @@ export default function QueueDisplayWithTTS() {
     const { ticketStr, counterStr } = ttsQueueRef.current.shift();
     isSpeakingRef.current = true;
 
-    // Stop any currently playing audio
     if (audioRef.current) {
       try {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-      } catch (e) {
-        // Ignore errors when stopping audio
-      }
+      } catch (e) {}
     }
 
-    // Build the audio sequence
     const audioSequence = [];
     audioSequence.push("xinmoiso");
     const ticketDigits = ticketStr.replace(/\s+/g, "").split("");
@@ -164,10 +158,8 @@ export default function QueueDisplayWithTTS() {
       }
     });
 
-    // 3. "Đến quầy số"
     audioSequence.push("denquayso");
 
-    // 4. Counter number - split into individual digits
     const counterDigits = counterStr.replace(/\s+/g, "").split("");
     counterDigits.forEach((char) => {
       if (/[0-9]/.test(char)) {
@@ -175,10 +167,8 @@ export default function QueueDisplayWithTTS() {
       }
     });
 
-    // Play the complete sequence
     await playAudioSequence(audioSequence);
 
-    // Wait a bit before processing next item in queue
     setTimeout(() => {
       isSpeakingRef.current = false;
       processTTSQueue();
@@ -423,7 +413,6 @@ export default function QueueDisplayWithTTS() {
         className="w-full flex-none flex flex-col justify-center items-center py-2 relative"
         style={{ backgroundColor: headerBg }}
       >
-        {/* TTS Toggle Button */}
         <button
           onClick={() => setTtsEnabled((v) => !v)}
           className={`absolute top-2 right-2 px-3 py-1 rounded-xl text-sm font-semibold border shadow`}
@@ -436,7 +425,6 @@ export default function QueueDisplayWithTTS() {
           }}
         >
           {ttsEnabled ? (
-            // Speaker ON icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -452,7 +440,6 @@ export default function QueueDisplayWithTTS() {
               />
             </svg>
           ) : (
-            // Speaker OFF icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -494,8 +481,8 @@ export default function QueueDisplayWithTTS() {
         ) : (
           <div className="w-full max-w-3xl">
             <div
-              className="overflow-x-auto bg-white rounded-lg shadow"
-              style={{ border: `2px solid ${borderAccent}` }}
+              className="overflow-hidden bg-white rounded-2xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl"
+              style={{ borderColor: borderAccent }}
             >
               <table className="min-w-[520px] w-full table-auto border-collapse">
                 <thead
@@ -506,7 +493,9 @@ export default function QueueDisplayWithTTS() {
                     <th
                       className="px-4 py-3 w-[400px] text-2xl text-center"
                       style={{
-                        border: `1px solid ${borderAccent}`,
+                        border: ` ${borderAccent}`,
+                        borderRight: `1px solid ${borderAccent}`,
+
                         color: tableTextColor,
                       }}
                     >
@@ -515,7 +504,7 @@ export default function QueueDisplayWithTTS() {
                     <th
                       className="px-4 py-3 w-[400px] text-2xl text-center"
                       style={{
-                        border: `1px solid ${borderAccent}`,
+                        border: `${borderAccent}`,
                         color: tableTextColor,
                       }}
                     >
@@ -534,7 +523,11 @@ export default function QueueDisplayWithTTS() {
                       >
                         <td
                           className="px-4 py-3 text-2xl text-center"
-                          style={{ border: `1px solid ${borderAccent}` }}
+                          style={{
+                            borderTop: `1px solid ${borderAccent}`,
+                            borderRight: `1px solid ${borderAccent}`,
+                            color: tableTextColor,
+                          }}
                         >
                           <span
                             style={{
@@ -542,16 +535,20 @@ export default function QueueDisplayWithTTS() {
                                 ? tableTextActive
                                 : tableTextColor,
                               fontWeight: isMostRecent ? 800 : 500,
+                              fontSize: isMostRecent && "30px",
                             }}
+                            className={isMostRecent ? "flicker" : ""}
                           >
                             {item.ticket_number}
                           </span>
                         </td>
                         <td
-                          className="px-4 py-3 text-center text-2xl font-bold"
+                          className="px-4 py-3 text-center text-2xl font-bold ${} "
                           style={{
-                            border: `1px solid ${borderAccent}`,
+                            borderLeft: `1px solid ${borderAccent}`,
+                            borderTop: `1px solid ${borderAccent}`,
                             color: tableTextColor,
+                            fontSize: isMostRecent && "30px",
                           }}
                         >
                           {item.device?.name}
@@ -582,6 +579,38 @@ export default function QueueDisplayWithTTS() {
           {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
         </div>
       </footer>
+      <style jsx>{`
+        @keyframes flicker {
+          0% {
+            opacity: 1;
+          }
+          25% {
+            opacity: 0.6;
+          }
+          50% {
+            opacity: 0.2;
+          }
+          75% {
+            opacity: 0.6;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+
+        .flicker {
+          animation: flicker 3s forwards;
+        }
+
+        @keyframes marquee {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+      `}</style>
     </div>
   );
 }

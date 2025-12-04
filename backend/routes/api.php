@@ -11,10 +11,17 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ButtonConfigController;
 use App\Http\Controllers\QRCodeController;
+use App\Http\Controllers\DashboardController;
+
 
 Route::get('/', function () {
     return response()->json(['message' => 'Hello world!']);
 });
+
+Route::get('/columnChart',[DashboardController::class,'columnChart']);
+Route::get('/circleChart',[DashboardController::class,'circleChart']);
+Route::get('/feedbackChart',[DashboardController::class,'feedbackChart']);
+
         
 Route::get('/feedback',[FeedbackController::class,'index']);
 Route::get('/feedback/export', [FeedbackController::class, 'export']);

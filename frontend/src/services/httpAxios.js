@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const appEnv = process.env.REACT_APP_ENV || "local";
-
 const apiHost = window.location.hostname;
 const apiPort = "8000";
 const apiProtocol = window.location.protocol;

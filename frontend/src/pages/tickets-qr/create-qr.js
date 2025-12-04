@@ -40,7 +40,10 @@ const TicketCreateQR = () => {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [number, setNumber] = useState(null);
+  // const [number, setNumber] = useState(null);
+  const [number, setNumber] = useState(() => {
+    return sessionStorage.getItem("ticket_number") || null;
+  });
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -58,10 +61,11 @@ const TicketCreateQR = () => {
       try {
         const response = await TicketService.validateUrl(id);
         if (response.status === true) {
-          // console.log("QR code is valid.");
         } else {
           setError("QR code expired or invalid.");
-          navigate("/notfound");
+          if (!number) {
+            navigate("/notfound");
+          }
         }
       } catch (err) {
         setError("Failed to validate QR code");
@@ -69,7 +73,6 @@ const TicketCreateQR = () => {
         navigate("/notfound");
       }
     };
-
     validateUrl();
   }, [id, navigate]);
 
@@ -167,13 +170,16 @@ const TicketCreateQR = () => {
         setRegistering((prev) => ({ ...prev, [id]: true }));
         try {
           const response = await TicketService.register(id);
-          // console.log(response);
           if (response.status) {
             setNumber(response.ticket.ticket_number);
+            sessionStorage.setItem(
+              "ticket_number",
+              response.ticket.ticket_number
+            );
           }
-          toast.success(response?.message || "Lấy số thành công.", {
-            autoClose: 500,
-          });
+          // toast.success(response?.message || "Lấy số thành công.", {
+          //   autoClose: 500,
+          // });
         } catch (err) {
           toast.error(
             err?.response?.data?.message || "Đăng ký số thứ tự thất bại.",
@@ -229,14 +235,6 @@ const TicketCreateQR = () => {
         {number ? (
           <div className="flex flex-col items-center justify-center h-full">
             <p className="font-bold text-9xl">{number}</p>
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={() => setNumber(null)}
-                className="bg-red-500 text-white py-1 px-5 rounded"
-              >
-                Lấy số mới
-              </button>
-            </div>
           </div>
         ) : isLoadingAll ? (
           <div className="text-center text-gray-300">Đang tải...</div>

@@ -13,74 +13,60 @@ use App\Http\Controllers\ButtonConfigController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\DashboardController;
 
-
-Route::get('/', function () {
-    return response()->json(['message' => 'Hello world!']);
-});
-
-Route::get('/columnChart',[DashboardController::class,'columnChart']);
-Route::get('/circleChart',[DashboardController::class,'circleChart']);
-Route::get('/feedbackChart',[DashboardController::class,'feedbackChart']);
-
-        
-Route::get('/feedback',[FeedbackController::class,'index']);
-Route::get('/feedback/export', [FeedbackController::class, 'export']);
-
-Route::prefix('service')->group(function(){
-    Route::get('/',[ServiceController::class,'index']);
-    Route::get('/list',[ServiceController::class,'list']);
-    Route::get('/{id}',[ServiceController::class,'show']);
-    Route::post('/',[ServiceController::class,'store']);
-    Route::put('/{id}/',[ServiceController::class,'update']);
-    Route::delete('/{id}',[ServiceController::class,'destroy']);
-});
-
-Route::prefix('config')->group(function(){
-    Route::get('/buttons', [ButtonConfigController::class, 'index']);
-    Route::post('/buttons', [ButtonConfigController::class, 'save']);
-    Route::get('/',[ConfigController::class,'index']);
-    Route::post('/', [ConfigController::class, 'store']); 
-    Route::post('/{id}', [ConfigController::class, 'update']); 
-    Route::get('reset',[ConfigController::class, 'resetNumber']);
-});
-
-Route::prefix('device')->group(function(){
-    Route::get('/',[DeviceController::class,'index']);
-    Route::get('/list',[DeviceController::class,'list']);
-    Route::get('/{id}',[DeviceController::class,'show']);
-    Route::put('/{id}/assignService',[DeviceController::class,'assignService']);
-    Route::delete('/{id}',[DeviceController::class,'destroy']);
-});
-Route::prefix('/ticket')->group(function(){
-    Route::get('/',[TicketController::class,'index']);
-    Route::post('/{id}',[TicketController::class,'store']);
-    Route::get('/queue_display',[TicketController::class,'queue_display']);
-    Route::get('/export',[TicketController::class,'export']);
-
-    Route::get('/validate-qr', [QRCodeController::class, 'validateQR']);
-    Route::get('/generate-new-qr', [QRCodeController::class, 'generateNewQR']);
-});
-
-Route::get('/debug',[TicketController::class,'debug']);
-
-Route::post('/ticket/{id}',[TicketController::class,'store']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/activity-logs', [ActivityLogController::class, 'index']);
-Route::get('/deployment-logs', [ActivityLogController::class, 'deployment']);
- 
-Route::get('/devices/{device}/activity-logs', [ActivityLogController::class, 'forDevice']);
-Route::get('/services/{service}/activity-logs', [ActivityLogController::class, 'forService']);
+Route::get('/config',[ConfigController::class,'index']);
+Route::get('/config/buttons', [ButtonConfigController::class, 'index']);
+Route::get('/ticket/validate-qr', [QRCodeController::class, 'validateQR']);
+Route::get('/ticket/generate-new-qr', [QRCodeController::class, 'generateNewQR']);
+Route::post('/ticket/{id}',[TicketController::class,'store']);
+Route::get('/service/list',[ServiceController::class,'list']);
+
+
 
 Route::middleware('jwt')->group(function () {
-    Route::put('/user', [AuthController::class, 'updateUser']);
-    Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/user', [AuthController::class, 'getUser']);
-    Route::prefix('feedback')->group(function(){
-        // Route::get('/',[FeedbackController::class,'index']);
-        Route::post('/store',[FeedbackController::class,'store']);
-        Route::get('/{id}',[FeedbackController::class,'show']);
+    Route::get('/columnChart',[DashboardController::class,'columnChart']);
+    Route::get('/circleChart',[DashboardController::class,'circleChart']);
+    Route::get('/feedbackChart',[DashboardController::class,'feedbackChart']);
+            
+    Route::get('/feedback',[FeedbackController::class,'index']);
+    Route::get('/feedback/export', [FeedbackController::class, 'export']);
+
+    Route::prefix('service')->group(function(){
+        Route::get('/',[ServiceController::class,'index']);
+        Route::get('/{id}',[ServiceController::class,'show']);
+        Route::post('/',[ServiceController::class,'store']);
+        Route::put('/{id}/',[ServiceController::class,'update']);
+        Route::delete('/{id}',[ServiceController::class,'destroy']);
     });
+
+    Route::prefix('config')->group(function(){
+        Route::post('/buttons', [ButtonConfigController::class, 'save']);
+        Route::post('/', [ConfigController::class, 'store']); 
+        Route::post('/{id}', [ConfigController::class, 'update']); 
+        Route::get('reset',[ConfigController::class, 'resetNumber']);
+    });
+
+    Route::prefix('device')->group(function(){
+        Route::get('/',[DeviceController::class,'index']);
+        Route::get('/list',[DeviceController::class,'list']);
+        Route::get('/{id}',[DeviceController::class,'show']);
+        Route::put('/{id}/assignService',[DeviceController::class,'assignService']);
+        Route::delete('/{id}',[DeviceController::class,'destroy']);
+    });
+
+    Route::prefix('/ticket')->group(function(){
+        Route::get('/',[TicketController::class,'index']);
+        Route::get('/export',[TicketController::class,'export']);
+    });
+
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+    Route::get('/deployment-logs', [ActivityLogController::class, 'deployment']);
+    Route::get('/devices/{device}/activity-logs', [ActivityLogController::class, 'forDevice']);
+    Route::get('/services/{service}/activity-logs', [ActivityLogController::class, 'forService']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/changePassword/{id}', [UserController::class, 'changePassword']);
 });

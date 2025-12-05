@@ -29,17 +29,23 @@ httpAxios.interceptors.request.use(
   }
 );
 
-// Response interceptor
 httpAxios.interceptors.response.use(
   function (response) {
     return response.data;
   },
   function (error) {
-    // Handle 401 errors (unauthorized)
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+      if (
+        window.location.pathname !== "/login" &&
+        window.location.pathname !== "/ticket/create" &&
+        window.location.pathname !== "/ticket/queue_display" &&
+        window.location.pathname !== "/ticket/qr" &&
+        window.location.pathname !== "/ticket/create-qr"
+      ) {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

@@ -44,9 +44,9 @@ const RouterBackend = [
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/*", element: <NotFound /> },
+
   { path: "/ticket/create", element: <TicketCreate /> },
   { path: "/ticket/queue_display", element: <QueueDisplay /> },
-
   { path: "/ticket/qr", element: <QRCTicketGenerator /> },
   { path: "/ticket/create-qr", element: <TicketCreateQR /> },
 
@@ -65,35 +65,9 @@ const RouterBackend = [
       { path: "/admin", element: <Dashboard /> },
       { path: "/dashboards", element: <Dashboard /> },
 
-      // --- Users ---
-      { path: "/users", element: <User /> },
-      { path: "/user/create", element: <CreateUser /> },
-      { path: "/user/show/:id", element: <CreateUser /> }, //
-      { path: "/user/edit/:id", element: <CreateUser /> }, //
-      { path: "/roles", element: <Role /> }, //
-
       // --- Devices ---
       { path: "/devices", element: <Device /> },
       { path: "/device/edit/:id", element: <EditDevice /> },
-
-      // --- Device Configurations ---
-      { path: "/device_configurations", element: <DeviceConfigurations /> },
-      {
-        path: "/device_configuration/create",
-        element: <CreateDeviceConfiguration />,
-      },
-      {
-        path: "/device_configuration/edit/:id",
-        element: <EditDeviceConfiguration />,
-      },
-      {
-        path: "/device_configuration/show/:id",
-        element: <ShowDeviceConfiguration />,
-      },
-
-      // --- Monitoring ---
-      { path: "/monitoring", element: <Device /> },
-      { path: "/monitoring/edit/:id", element: <Device /> },
 
       // --- Logs ---
       { path: "/logs", element: <ActivityLog /> },

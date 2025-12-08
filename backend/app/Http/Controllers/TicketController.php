@@ -107,21 +107,6 @@ class TicketController extends Controller
         }
     }
 
-    public function queue_display()
-    {
-        $ticket = Ticket::with('service','device')
-                ->where('status','!=','waiting')
-                ->orderBy('updated_at','desc')
-                ->limit(8)
-                ->get();
-
-        return response()->json([
-            'status'=>true,
-            'tickets'=>$ticket,
-            'message'=>'Ticket retrieved successfully.'
-        ]);
-    }
-
 
     public function export(Request $request)
     {

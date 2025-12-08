@@ -87,7 +87,7 @@ const FeedbackChart = () => {
 
         <div className="text-sm text-gray-500 mt-2">Tháng này</div>
 
-        <div className="flex items-center justify-center mt-4">
+        <div className="flex items-center justify-center">
           <div
             className={`flex items-center gap-1 text-sm font-medium ${
               isPositive ? "text-green-600" : "text-red-600"

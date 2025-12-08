@@ -34,7 +34,7 @@ export default function QueueDisplayWithTTS() {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const firstLoadRef = useRef(true);
 
   const prevTopIdRef = useRef(null);
@@ -339,7 +339,7 @@ export default function QueueDisplayWithTTS() {
   // ---------- Watch for ticket changes and trigger TTS ----------
   useEffect(() => {
     if (!tickets || tickets.length === 0) return;
-
+    if (!ttsEnabled) return;
     const top = tickets[0];
     const topId = top?.id ?? top?.ticket_number ?? null;
     const updatedRaw =
@@ -356,6 +356,18 @@ export default function QueueDisplayWithTTS() {
       prevTopIdRef.current = topId;
       prevTopUpdatedMsRef.current = topUpdatedMs;
       firstLoadRef.current = false;
+      const ticketPartRaw = String(top?.ticket_number ?? "")
+        .replace(/\s+/g, "")
+        .trim();
+
+      let rawCounter = String(top?.device?.name ?? "")
+        .replace(/\s+/g, " ")
+        .trim();
+      rawCounter = rawCounter.replace(/^qu(â|a)y\s*/i, "").trim();
+      const parts = rawCounter.split(" ");
+      const lastPart = parts[parts.length - 1];
+
+      speakMulti(ticketPartRaw, lastPart);
       return;
     }
 

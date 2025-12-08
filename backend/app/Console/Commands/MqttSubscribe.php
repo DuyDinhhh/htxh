@@ -68,7 +68,6 @@ class MqttSubscribe extends Command
             }elseif ($topic === 'transferservice'){
                 event(new \App\Events\ServiceTransfer($data));
             } else {
-                \Log::debug('default subscribee');
             }
         });
         $mqtt->loop(true);

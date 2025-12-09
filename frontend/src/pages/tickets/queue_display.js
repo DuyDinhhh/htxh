@@ -311,7 +311,7 @@ export default function QueueDisplayWithTTS() {
 
           setTickets((prev) => {
             const newTickets = [row, ...prev.filter((t) => t.id !== row.id)];
-            console.log("Updated tickets:", newTickets.slice(0, MAX_ROWS));
+            // console.log("Updated tickets:", newTickets.slice(0, MAX_ROWS));
             return newTickets.slice(0, MAX_ROWS);
           });
         } else {

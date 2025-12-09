@@ -110,7 +110,7 @@ class FeedbackController extends Controller
             $feedback_array[] = [
                 optional($ticket->deviceWithTrashed)->name ?? $feedback->device_id,
                 optional($ticket->serviceWithTrashed)->name ?? $feedback->service_id,
-                $feedback->value === 1? "Không hài lòng" :($feedback-> value === 2 ? "Bình thường" : ($feedback -> value === 3 ? "Hài lòng" : "Không hài lòng")),
+                $feedback->value === 1? "Không hài lòng" :($feedback-> value === 2 ? "Bình thường" : ($feedback -> value === 3 ? "Hài lòng" : "Rất hài lòng")),
                 optional($ticket)->ticket_number ?? $feedback->ticket_id,
                 $feedback->created_at->format('Y-m-d H:i:s'),
             ];

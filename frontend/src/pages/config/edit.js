@@ -145,7 +145,7 @@ const ConfigEdit = () => {
     } else {
       setErrors((p) => ({
         ...p,
-        [name]: "Mã màu không hợp lệ. Vui lòng dùng #rrggbb hoặc #rgb.",
+        [name]: "Mã màu không hợp lệ. Vui lòng dùng #rrggbb.",
       }));
     }
   };

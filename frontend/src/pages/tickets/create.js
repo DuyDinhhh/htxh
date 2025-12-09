@@ -259,7 +259,7 @@ const TicketDisplay = () => {
   const footerBg = config?.bg_bottom_color ?? DEFAULT_BG;
   const footerTextColor =
     config?.text_bottom_color ?? DEFAULT_HEADER_TEXT_COLOR;
-  const logoSrc = config?.photoUrl ?? "/images/agribank-logo.png";
+  // const logoSrc = config?.photo ?? "/images/agribank-logo.png";
 
   const isLoadingAll = loadingServices || loadingConfig;
 

@@ -52,7 +52,7 @@ class ConfigController extends Controller
 
             $file = $request->file('photo');
             $exten = $file->extension();
-            $imageName = 'photo-logo.' . $exten;
+            $imageName = 'photo-logo.'. date('YmHis') . $exten;
             $file->move(public_path('images/config'), $imageName);
 
             $config->photo = $imageName;
@@ -99,7 +99,7 @@ class ConfigController extends Controller
 
             $file = $request->file('photo');
             $exten = $file->extension();
-            $imageName = 'photo-logo.' . $exten;
+            $imageName = 'photo-logo.'.date('YmHis') . $exten;
             $file->move(public_path('images/config'), $imageName);
 
             $config->photo = $imageName;

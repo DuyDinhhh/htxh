@@ -35,21 +35,24 @@ class FeedbackController extends Controller
         })
         ->with('ticket.deviceWithTrashed','ticket.serviceWithTrashed')
         ->paginate(8);
- 
+
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();  
+        
         $total = Feedback::count();
-        $totaltoday = Feedback::whereDate('created_at', $today)->count();
+        $totaltoday = Feedback::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
 
         $positiveQuery = Feedback::whereIn('value', [3, 4]);
         $positive = $positiveQuery->count();
-        $positivetoday = $positiveQuery->whereDate('created_at', $today)->count();
+        $positivetoday = $positiveQuery->whereBetween('created_at', [$startOfDay, $endOfDay])->count();
 
         $negativeQuery = Feedback::where('value', 1);
         $negative = $negativeQuery->count();
-        $negativetoday = $negativeQuery->whereDate('created_at', $today)->count();
+        $negativetoday = $negativeQuery->whereBetween('created_at', [$startOfDay, $endOfDay])->count();
 
         $neutralQuery = Feedback::where('value', 2);
         $neutral = $neutralQuery -> count();
-        $neutraltoday = $neutralQuery -> whereDate('created_at',$today)->count();
+        $neutraltoday = $neutralQuery ->whereBetween('created_at', [$startOfDay, $endOfDay])->count();
 
         $quickview = [
             'total' => $total,
@@ -72,15 +75,18 @@ class FeedbackController extends Controller
 
     public function export(Request $request)
     {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '10000M');
+        
         $feedbacks = Feedback::query()
             ->when($request->filled('service_id'), function ($q) use ($request) {
                 $q->where('service_id', $request->service_id);
             })
             ->when($request->filled('device_id'), function ($q) use ($request) {
-            $q->where('device_id',$request -> device_id);
+                $q->where('device_id', $request->device_id);
             })
             ->when($request->filled('value'), function ($q) use ($request) {
-            $q->where('value',$request -> value);
+                $q->where('value', $request->value);
             })
             ->when($request->filled('date_from'), function ($q) use ($request) {
                 $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from));
@@ -93,8 +99,14 @@ class FeedbackController extends Controller
             }, function ($q) {
                 $q->orderBy('id', 'desc');
             })
-            ->with('ticket.deviceWithTrashed','ticket.serviceWithTrashed')
+            ->with('ticket.deviceWithTrashed', 'ticket.serviceWithTrashed')
             ->get();
+
+        // Check size limit
+        if ($feedbacks->count() > 1000000) {
+            return response()->json(['error' => 'File quá lớn. Xin chia nhỏ thời gian và xuất lại.'], 400);
+        }
+
         $feedback_array = [
             [
                 'Thiết bị',
@@ -110,32 +122,34 @@ class FeedbackController extends Controller
             $feedback_array[] = [
                 optional($ticket->deviceWithTrashed)->name ?? $feedback->device_id,
                 optional($ticket->serviceWithTrashed)->name ?? $feedback->service_id,
-                $feedback->value === 1? "Không hài lòng" :($feedback-> value === 2 ? "Bình thường" : ($feedback -> value === 3 ? "Hài lòng" : "Rất hài lòng")),
+                $feedback->value === 1 ? "Không hài lòng" : ($feedback->value === 2 ? "Bình thường" : ($feedback->value === 3 ? "Hài lòng" : "Rất hài lòng")),
                 optional($ticket)->ticket_number ?? $feedback->ticket_id,
-                $feedback->created_at->format('Y-m-d H:i:s'),
+                $feedback->created_at ? $feedback->created_at->format('H:i:s d/m/Y') : "",
             ];
         }
-        return $this->downloadExcel($feedback_array, 'feedbacks.xls');
+        
+        return $this->downloadExcel($feedback_array, 'feedbacks.xlsx');
     }
 
-    protected function downloadExcel(array $data, string $filename = 'export.xls')
+    protected function downloadExcel(array $data, string $filename = 'export.xlsx')
     {
         ini_set('max_execution_time', 0);
-        ini_set('memory_limit', '4000M');
+        ini_set('memory_limit', '10000M');
+
         try {
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->getDefaultColumnDimension()->setWidth(20);
             $sheet->fromArray($data);
 
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xls($spreadsheet);
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
 
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
+            return response()->streamDownload(function () use ($writer) {
+                $writer->save('php://output');
             }, $filename, [
-                'Content-Type' => 'application/vnd.ms-excel',
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  
                 'Cache-Control' => 'max-age=0',
-        ]);
+            ]);
         } catch (\Exception $e) {
             \Log::error($e);
             return response()->json(['error' => 'Failed to export Excel.'], 500);

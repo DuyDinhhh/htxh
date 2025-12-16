@@ -25,11 +25,13 @@ class ResponseNumberListener
         $prefix = env('APP_ENV', "");
         $clientId = 'publish-' . $data['device_id'].$prefix ;
         config(['mqtt-client.connections.default.client_id' => $clientId]);
-        $today = Carbon::today()->format('Y-m-d'); 
+        
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();   
 
         $oldTicket = Ticket::where('device_id', $data['device_id'])
         ->where('status', 'processing')
-        ->whereDate('created_at', $today)
+        ->whereBetween('created_at', [$startOfDay, $endOfDay])
         ->first();
         
         if($oldTicket){
@@ -55,7 +57,7 @@ class ResponseNumberListener
        
         $ticket = Ticket::where('device_id',$data['device_id'])
                     ->where('status','waiting')
-                    ->whereDate('created_at',$today)
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])
                     ->first();
         
         // \Log::debug($ticket);
@@ -70,7 +72,7 @@ class ResponseNumberListener
                         ->where('status', 'waiting')
                         // ->whereIn('status', ['waiting','skipped'])
                         ->orderBy('created_at', 'asc')
-                        ->whereDate('created_at', $today)
+                        ->whereBetween('created_at', [$startOfDay, $endOfDay])
                         ->first();
                     if ($ticketFound) {
                         $candidateTickets[] = [
@@ -100,7 +102,7 @@ class ResponseNumberListener
         //                     ->where('service_id', $service->id)
         //                     ->where('status', 'skipped')
         //                     ->orderBy('created_at', 'asc')
-        //                     ->whereDate('created_at', $today)
+        //                     ->whereBetween('created_at', [$startOfDay, $endOfDay])
         //                     ->first();
         //                 if ($ticketFound) {
         //                     $candidateTickets[] = [

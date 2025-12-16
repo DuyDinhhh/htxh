@@ -99,6 +99,7 @@ const FeedbackManagement = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sort, setSort] = useState("desc");
+  const [exporting, setExporting] = useState(false);
 
   const fetchServices = async () => {
     try {
@@ -131,7 +132,7 @@ const FeedbackManagement = () => {
         value,
       };
       const response = await FeedbackService.index(page, params);
-      // console.log("feedback: ", response);
+      console.log("feedback: ", response);
       const data = response.feedback;
       setFeedbacks(data?.data || []);
       setPagination({
@@ -210,6 +211,7 @@ const FeedbackManagement = () => {
   };
 
   const handleExport = async () => {
+    setExporting(true);
     try {
       const params = {
         device_id: deviceId,
@@ -220,20 +222,29 @@ const FeedbackManagement = () => {
         value,
       };
       const response = await FeedbackService.export(params);
-
-      // If the service returns a blob (axios), create download
       const blob = new Blob([response.data || response], {
         type: "application/vnd.ms-excel",
       });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "feedbacks.xls");
+      link.setAttribute("download", "feedbacks.xlsx");
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (err) {
-      toast.error("Lỗi khi xuất Excel", { autoClose: 500 });
+      try {
+        const errorBlob = err.response.data;
+        const errorText = await errorBlob.text();
+        console.log(errorText);
+        toast.error(JSON.parse(errorText).error || "Lỗi khi xuất Excel", {
+          autoClose: 1000,
+        });
+      } catch (e) {
+        toast.error("Lỗi khi xuất Excel", { autoClose: 1000 });
+      }
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -248,9 +259,38 @@ const FeedbackManagement = () => {
 
         <button
           onClick={handleExport}
-          className="bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center"
+          disabled={exporting}
+          className={`bg-[#00afb9] hover:bg-[#0081a7] text-white font-bold py-2 px-4 rounded flex items-center ${
+            exporting ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
-          <span className="ml-2">Xuất Excel</span>
+          {exporting ? (
+            <>
+              <svg
+                className="w-4 h-4 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg>
+              <span className="ml-2">Đang xuất...</span>
+            </>
+          ) : (
+            <span className="ml-2">Xuất Excel</span>
+          )}
         </button>
       </div>
 
@@ -323,28 +363,26 @@ const FeedbackManagement = () => {
         <div className="p-6 border-b">
           <div className="flex flex-wrap gap-3 items-center">
             <select
-              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 min-w-[180px]"
+              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 w-[180px]"
               value={serviceId}
               onChange={(e) => setServiceId(e.target.value)}
             >
               <option value="">-- Tất cả dịch vụ --</option>
               {services.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {/* {svc.name} */}
                   {svc.name} {svc.deleted_at ? "(Đã xoá)" : ""}
                 </option>
               ))}
             </select>
 
             <select
-              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 min-w-[180px]"
+              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 w-[180px]"
               value={deviceId}
               onChange={(e) => setDeviceId(e.target.value)}
             >
               <option value="">-- Tất cả thiết bị --</option>
               {devices.map((svc) => (
                 <option key={svc.id} value={svc.id}>
-                  {/* {svc.name} */}
                   {svc.name} {svc.deleted_at ? "(Đã xoá)" : ""}
                 </option>
               ))}
@@ -384,14 +422,6 @@ const FeedbackManagement = () => {
               <option value="desc">Mới nhất</option>
               <option value="oldest">Cũ nhất</option>
             </select>
-            {/* 
-            <button
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-              onClick={() => fetchFeedbacks(1)}
-            >
-              Lọc
-            </button>
-            <div className="flex-1" /> */}
           </div>
         </div>
 

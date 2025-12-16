@@ -27,16 +27,17 @@ class SpecificNumberListener
         $prefix = env('APP_ENV', "");
         $clientId = 'publish-' . $data['device_id'].$prefix ;
         config(['mqtt-client.connections.default.client_id' => $clientId]);
-        $today = Carbon::today()->format('Y-m-d'); 
+        
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();   
 
         $device = Device::where('id',$data['device_id'])
                 ->first();
 
-        \Log::debug("Device: ".$device);
         //danh dau da goi
         $oldTicket = Ticket::where('device_id', $data['device_id'])
         ->where('status', 'processing')
-        ->whereDate('created_at', $today)
+        ->whereBetween('created_at', [$startOfDay, $endOfDay])
         ->first();
         
         if($oldTicket){
@@ -45,7 +46,7 @@ class SpecificNumberListener
         }
 
         $ticket = Ticket::where('ticket_number', $number)
-        ->whereDate('created_at', $today)
+        ->whereBetween('created_at', [$startOfDay, $endOfDay])
         ->first();
 
         if ($ticket) {

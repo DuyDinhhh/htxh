@@ -66,6 +66,7 @@ class ConfigController extends Controller
             'config' => $config
         ]);
     }
+    
     public function update($id, StoreConfigRequest $request)
     {
         $config = Config::findOrFail($id);
@@ -120,11 +121,12 @@ class ConfigController extends Controller
             ->whereNull('deleted_at')
             ->get();
 
-        $today = Carbon::today()->format('Y-m-d');
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();     
         
         foreach($services as $service){
-            $tickets = Ticket::whereDate('created_at', $today)
-                ->where('ticket_number', 'like', $service->queue_number.'%')            
+            $tickets = Ticket::where('service_id', $service->id)
+                ->whereBetween('created_at', [$startOfDay, $endOfDay])          
                 ->get();
 
             foreach ($tickets as $ticket) {

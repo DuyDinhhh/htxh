@@ -26,11 +26,13 @@ class RecallNumberListener
         $prefix = env('APP_ENV', "");
         $clientId = 'publish-' . $data['device_id'].$prefix ;
         config(['mqtt-client.connections.default.client_id' => $clientId]);
-        $today = Carbon::today()->format('Y-m-d'); 
+        
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();   
 
         $ticket = Ticket::where('device_id',$data['device_id'])
                 ->where('status','processing')
-                ->whereDate('created_at',$today)
+                ->whereBetween('created_at', [$startOfDay, $endOfDay])
                 ->first();
 
         if ($ticket) {

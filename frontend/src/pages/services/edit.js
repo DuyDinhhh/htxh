@@ -114,7 +114,6 @@ const ServiceEdit = () => {
 
   return (
     <div className="w-full px-8 py-8">
-      {/* Header + Breadcrumb (match list/create pages) */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900">
@@ -189,6 +188,14 @@ const ServiceEdit = () => {
                   onChange={handleChange}
                   className="w-12 h-12 p-0 border-2 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                   style={{ minWidth: "3rem", minHeight: "3rem" }}
+                />
+                <input
+                  type="color"
+                  name="color"
+                  value={form.color}
+                  onChange={handleColorTextChange}
+                  placeholder="#rrggbb hoặc #rgb"
+                  className="w-40 rounded-md border border-gray-300 bg-white text-gray-900 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
                 />
                 <span className="text-gray-700 text-sm">{form.color}</span>
                 <span

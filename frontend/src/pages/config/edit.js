@@ -132,7 +132,7 @@ const ConfigEdit = () => {
   };
 
   const handleColorTextChange = (e) => {
-    const { name, value } = e.target; // this name is the same as the color key, e.g. bg_top_color or text_top_color
+    const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
     if (isValidHex(value)) {
       const normalized = normalizeHex(value);

@@ -38,7 +38,7 @@ class SkipNumberListener
             ->first();
         
         if($oldTicket){
-            $oldTicket->device_id = null;            
+            // $oldTicket->device_id = null;            
             $oldTicket->status = "skipped";            
             $oldTicket->created_at = now();
             $oldTicket->save();

@@ -55,6 +55,8 @@ class MqttSubscribe extends Command
                 event(new \App\Events\DeviceStatusReceived($data)); 
             }elseif ($topic === 'requestnumber'){
                 event(new \App\Events\NumberRequest($data));
+            }elseif ($topic === 'requestskipnumber'){
+                event(new \App\Events\NumberSkipRequest($data));
             }elseif ($topic === 'recallnumber'){
                 event(new \App\Events\NumberRecall($data));
             }elseif ($topic === 'skipnumber'){

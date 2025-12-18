@@ -2,7 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ServiceService from "../../services/serviceService";
 import { toast } from "react-toastify";
-
+const isValidHex = (val = "") =>
+  /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
+const normalizeHex = (val = "") => {
+  const v = (val || "").trim();
+  if (/^#([0-9A-Fa-f]{6})$/.test(v)) return v.toLowerCase();
+  if (/^#([0-9A-Fa-f]{3})$/.test(v)) {
+    const short = v.slice(1).split("");
+    return ("#" + short.map((c) => c + c).join("")).toLowerCase();
+  }
+  return v;
+};
 const ServiceEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,7 +91,24 @@ const ServiceEdit = () => {
       setSaving(false);
     }
   };
-
+  const handleColorTextChange = (e) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+    if (isValidHex(value)) {
+      const normalized = normalizeHex(value);
+      setForm((p) => ({ ...p, [name]: normalized }));
+      setErrors((p) => {
+        const c = { ...p };
+        delete c[name];
+        return c;
+      });
+    } else {
+      setErrors((p) => ({
+        ...p,
+        [name]: "Mã màu không hợp lệ. Vui lòng dùng #rrggbb.",
+      }));
+    }
+  };
   /* ---------- UI ---------- */
 
   if (loading) {
@@ -114,7 +141,6 @@ const ServiceEdit = () => {
 
   return (
     <div className="w-full px-8 py-8">
-      {/* Header + Breadcrumb (match list/create pages) */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900">
@@ -190,6 +216,14 @@ const ServiceEdit = () => {
                   className="w-12 h-12 p-0 border-2 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                   style={{ minWidth: "3rem", minHeight: "3rem" }}
                 />
+                <input
+                  type="text"
+                  name="color"
+                  value={form.color}
+                  onChange={handleColorTextChange}
+                  placeholder="#rrggbb hoặc #rgb"
+                  className="w-40 rounded-md border border-gray-300 bg-white text-gray-900 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                />
                 <span className="text-gray-700 text-sm">{form.color}</span>
                 <span
                   className="inline-block w-8 h-8 rounded-full border border-gray-300"
@@ -199,12 +233,10 @@ const ServiceEdit = () => {
             </div>
           </div>
 
-          {/* General error */}
           {errors.general && (
             <div className="pt-4 text-red-600 text-sm">{errors.general}</div>
           )}
 
-          {/* Footer Actions */}
           <div className="px-0 mt-8 pt-5 border-t border-gray-200 flex items-center justify-end gap-2">
             <Link
               to="/services"

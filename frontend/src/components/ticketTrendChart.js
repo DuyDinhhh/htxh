@@ -32,7 +32,6 @@ const TicketTrendChart = () => {
           monthData.tickets.forEach((ticket) => {
             monthObj[ticket.service?.name] = ticket?.ticket_count || 0;
           });
-
           return monthObj;
         });
 

@@ -60,7 +60,7 @@ class ResponseNumberListener
                     ->whereBetween('created_at', [$startOfDay, $endOfDay])
                     ->first();
         
-        // \Log::debug($ticket);
+        \Log::debug("Ticket tranfered: ");
 
         if(!$ticket){
             foreach ($priorities as $priority) {
@@ -93,41 +93,11 @@ class ResponseNumberListener
             }
         }
 
-        // if(!$ticket){
-        //     foreach ($priorities as $priority) {
-        //         $candidateTickets = [];
-        //         foreach ($device->services as $service) {
-        //             if ($service->pivot->priority_number == $priority) {
-        //                 $ticketFound = Ticket::whereNull('device_id')
-        //                     ->where('service_id', $service->id)
-        //                     ->where('status', 'skipped')
-        //                     ->orderBy('created_at', 'asc')
-        //                     ->whereBetween('created_at', [$startOfDay, $endOfDay])
-        //                     ->first();
-        //                 if ($ticketFound) {
-        //                     $candidateTickets[] = [
-        //                         'ticket' => $ticketFound,
-        //                         'serviceName' => $service->name
-        //                     ];
-        //                 }
-        //             }
-        //         }
-        //         if (!empty($candidateTickets)) {
-        //             usort($candidateTickets, function($a, $b) {
-        //                 return strtotime($a['ticket']->created_at) <=> strtotime($b['ticket']->created_at);
-        //             });
-        //             $ticket = $candidateTickets[0]['ticket'];
-        //             $serviceName = $candidateTickets[0]['serviceName'];
-        //             break;  
-        //         }
-        //     }
-        // }
-
         if ($ticket) {
             $message = [
                 "device_id" => $data['device_id'],
                 "number" => $ticket->ticket_number,
-                "service_name" => $serviceName,
+                "service_name" => $serviceName ?? ($ticket->service->name ?? null),
                 "device_name" => $device -> name
             ];
             $mqtt = MQTT::connection('publisher');

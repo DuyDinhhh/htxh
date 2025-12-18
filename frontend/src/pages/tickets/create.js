@@ -5,6 +5,9 @@ import ConfigService from "../../services/configService";
 import { toast } from "react-toastify";
 import { debounce } from "lodash";
 import { getImageUrl } from "../../services/httpAxios";
+import Header from "../../components/kiosk/header";
+import Footer from "../../components/kiosk/footer";
+import ServiceButton from "../../components/kiosk/button";
 
 const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
@@ -134,7 +137,6 @@ const TicketDisplay = () => {
     fetchServices();
   }, []);
 
-  /** ------------ LOAD HEADER/FOOTER CONFIG ------------- */
   useEffect(() => {
     let mounted = true;
     const loadConfig = async () => {
@@ -278,23 +280,13 @@ const TicketDisplay = () => {
   /** ------------ RENDER ------------- */
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden relative">
-      <header
-        className="w-full flex-none flex flex-col items-center mb-2 justify-center px-10 py-1"
-        style={{ backgroundColor: headerBg }}
-      >
-        <img
-          src={logoSrc}
-          alt="Header Logo"
-          className="h-20 w-96 mb-2 object-contain"
-        />
-        <div
-          className="text-lg font-semibold text-center uppercase"
-          style={{ color: headerTextColor }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
-        </div>
-      </header>
-
+      <Header
+        headerBg={headerBg}
+        headerTextColor={headerTextColor}
+        logoSrc={logoSrc}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
       <main
         className="flex-1 p-4 sm:px-6 md:px-8 overflow-auto"
         style={{ position: "relative" }}
@@ -317,7 +309,6 @@ const TicketDisplay = () => {
             }}
             ref={canvasRef}
           >
-            {/* Các nút không có x,y -> render theo cột (auto layout) */}
             <div
               className="flex gap-6 w-full"
               style={{
@@ -366,21 +357,6 @@ const TicketDisplay = () => {
                       position: "relative",
                     };
 
-                    const buttonStyle = {
-                      width: buttonWidthStyle,
-                      maxWidth: "100%",
-                      height: `${s.height}px`,
-                      backgroundColor:
-                        safeColor(service.color, null) || DEFAULT_BUTTON_BG,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                      padding: "0 12px",
-                      boxSizing: "border-box",
-                      border: "none",
-                    };
-
                     return (
                       <div
                         key={service.id}
@@ -391,34 +367,15 @@ const TicketDisplay = () => {
                         }}
                       >
                         <div style={wrapperStyle}>
-                          <button
-                            disabled={isRegistering}
-                            onClick={() => handleRegister(service.id)}
-                            className={`
-                              rounded text-white shadow transition uppercase font-semibold text-xl sm:text-2xl md:text-2xl
-                              flex items-center justify-center whitespace-normal break-words leading-tight
-                              ${
-                                isRegistering
-                                  ? "opacity-60 cursor-not-allowed"
-                                  : "hover:brightness-90"
-                              }
-                            `}
-                            style={buttonStyle}
-                          >
-                            <span
-                              className="block"
-                              style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                width: "100%",
-                              }}
-                            >
-                              {service.name}
-                            </span>
-                          </button>
+                          <ServiceButton
+                            service={service}
+                            isRegistering={isRegistering}
+                            onRegister={handleRegister}
+                            settings={s}
+                            isMobile={isMobile}
+                            useFixedOnMobile={useFixedOnMobile}
+                            isAbsolutePositioned={false}
+                          />
                         </div>
                       </div>
                     );
@@ -426,8 +383,6 @@ const TicketDisplay = () => {
                 </div>
               ))}
             </div>
-
-            {/* Overlay: các nút có x,y -> hiển thị đúng layout đã config */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{ zIndex: 150 }}
@@ -438,58 +393,24 @@ const TicketDisplay = () => {
                 if (!hasPos) return null;
 
                 const isRegistering = Boolean(registering[service.id]);
-                const buttonStyle = {
-                  width: `${s.width}px`,
-                  maxWidth: "100%",
-                  height: `${s.height}px`,
-                  backgroundColor:
-                    safeColor(service.color, null) || DEFAULT_BUTTON_BG,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  padding: "0 12px",
-                  boxSizing: "border-box",
-                  border: "none",
-                };
-
                 const wrapperStyle = {
                   position: "absolute",
                   left: s.x,
                   top: s.y,
-                  pointerEvents: "auto", // cho click
+                  pointerEvents: "auto",
                 };
 
                 return (
                   <div key={`pos-${service.id}`} style={wrapperStyle}>
-                    <button
-                      disabled={isRegistering}
-                      onClick={() => handleRegister(service.id)}
-                      className={`
-                        rounded text-white shadow transition uppercase font-semibold text-xl sm:text-2xl md:text-2xl
-                        flex items-center justify-center whitespace-normal break-words leading-tight
-                        ${
-                          isRegistering
-                            ? "opacity-60 cursor-not-allowed"
-                            : "hover:brightness-90"
-                        }
-                      `}
-                      style={buttonStyle}
-                    >
-                      <span
-                        className="block"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          width: "100%",
-                        }}
-                      >
-                        {service.name}
-                      </span>
-                    </button>
+                    <ServiceButton
+                      service={service}
+                      isRegistering={isRegistering}
+                      onRegister={handleRegister}
+                      settings={s}
+                      isMobile={isMobile}
+                      useFixedOnMobile={useFixedOnMobile}
+                      isAbsolutePositioned={true}
+                    />
                   </div>
                 );
               })}
@@ -498,21 +419,12 @@ const TicketDisplay = () => {
         )}
       </main>
 
-      <footer
-        className="w-full mt-2 flex-none flex flex-col justify-center items-center py-4"
-        style={{ backgroundColor: footerBg }}
-      >
-        <div
-          className="text-lg font-bold text-center uppercase"
-          style={{
-            display: "inline-block",
-            animation: "marquee 10s linear infinite",
-            color: footerTextColor,
-          }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
-        </div>
-      </footer>
+      <Footer
+        footerBg={footerBg}
+        footerTextColor={footerTextColor}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
     </div>
   );
 };

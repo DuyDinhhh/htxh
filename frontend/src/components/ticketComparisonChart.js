@@ -33,7 +33,6 @@ const TicketComparisonChart = () => {
   return (
     <div className="bg-white shadow rounded-lg p-4 my-5">
       <h2 className="text-lg font-semibold mb-4">Số lượng vé</h2>
-
       <div
         className="flex flex-col items-center justify-center"
         style={{ minHeight: "280px" }}

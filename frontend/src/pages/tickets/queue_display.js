@@ -37,6 +37,15 @@ export default function QueueDisplayWithTTS() {
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const firstLoadRef = useRef(true);
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const prevTopIdRef = useRef(null);
   const prevTopUpdatedMsRef = useRef(0);
 
@@ -311,7 +320,6 @@ export default function QueueDisplayWithTTS() {
 
           setTickets((prev) => {
             const newTickets = [row, ...prev.filter((t) => t.id !== row.id)];
-            // console.log("Updated tickets:", newTickets.slice(0, MAX_ROWS));
             return newTickets.slice(0, MAX_ROWS);
           });
         } else {
@@ -412,12 +420,11 @@ export default function QueueDisplayWithTTS() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
-      {/* Header */}
       <header
-        className="w-full flex-none flex flex-col justify-center items-center py-2 relative"
+        className="w-full flex-none flex flex-col justify-center items-center py-4 relative"
         style={{ backgroundColor: headerBg }}
       >
-        <button
+        {/* <button
           onClick={() => setTtsEnabled((v) => !v)}
           className={`absolute top-2 right-2 px-3 py-1 rounded-xl text-sm font-semibold border shadow`}
           title={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
@@ -459,15 +466,36 @@ export default function QueueDisplayWithTTS() {
               />
             </svg>
           )}
-        </button>
+        </button> */}
+
+        <div
+          className="absolute items-center right-5 flex flex-col "
+          style={{ color: headerTextColor }}
+        >
+          <div className="text-4xl font-bold text-foreground tabular-nums tracking-tight">
+            {currentTime.toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
+          </div>
+          <div className="text-sm text-muted-foreground font-medium mt-1">
+            {currentTime.toLocaleDateString("vi-VN", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+        </div>
 
         <img
           src={logoSrc}
           alt="Header Logo"
-          className="h-20 w-96 mb-2 object-contain"
+          className="h-20 w-96 object-contain"
         />
         <div
-          className="text-lg font-semibold text-center uppercase"
+          className="text-xl font-semibold text-center uppercase"
           style={{ color: headerTextColor }}
         >
           {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
@@ -495,7 +523,7 @@ export default function QueueDisplayWithTTS() {
                 >
                   <tr>
                     <th
-                      className="px-4 py-3 w-[400px] text-2xl text-center"
+                      className="px-4 py-3 w-[400px] text-3xl text-center"
                       style={{
                         border: ` ${borderAccent}`,
                         borderRight: `1px solid ${borderAccent}`,
@@ -506,7 +534,7 @@ export default function QueueDisplayWithTTS() {
                       Số thứ tự
                     </th>
                     <th
-                      className="px-4 py-3 w-[400px] text-2xl text-center"
+                      className="px-4 py-3 w-[400px] text-3xl text-center"
                       style={{
                         border: `${borderAccent}`,
                         color: tableTextColor,
@@ -526,7 +554,7 @@ export default function QueueDisplayWithTTS() {
                         style={{ backgroundColor: rowBg }}
                       >
                         <td
-                          className="px-4 py-3 text-2xl text-center"
+                          className="px-4 py-3 text-3xl text-center"
                           style={{
                             borderTop: `1px solid ${borderAccent}`,
                             borderRight: `1px solid ${borderAccent}`,
@@ -539,7 +567,7 @@ export default function QueueDisplayWithTTS() {
                                 ? tableTextActive
                                 : tableTextColor,
                               fontWeight: isMostRecent ? 800 : 500,
-                              fontSize: isMostRecent && "30px",
+                              fontSize: isMostRecent && "50px",
                             }}
                             className={isMostRecent ? "flicker" : ""}
                           >
@@ -547,7 +575,7 @@ export default function QueueDisplayWithTTS() {
                           </span>
                         </td>
                         <td
-                          className="px-4 py-3 text-center text-2xl font-bold ${} "
+                          className="px-4 py-3 text-center text-3xl font-bold ${} "
                           style={{
                             borderLeft: `1px solid ${borderAccent}`,
                             borderTop: `1px solid ${borderAccent}`,
@@ -567,13 +595,12 @@ export default function QueueDisplayWithTTS() {
         )}
       </main>
 
-      {/* Footer */}
       <footer
-        className="w-full flex-none flex flex-col justify-center items-center py-4 overflow-hidden"
+        className="w-full flex-none flex flex-col justify-center items-center py-6 overflow-hidden"
         style={{ backgroundColor: footerBg }}
       >
         <div
-          className="text-lg font-bold uppercase whitespace-nowrap"
+          className="text-xl font-bold uppercase whitespace-nowrap"
           style={{
             display: "inline-block",
             animation: "marquee 10s linear infinite",

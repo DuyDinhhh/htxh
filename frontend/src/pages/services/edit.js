@@ -2,7 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ServiceService from "../../services/serviceService";
 import { toast } from "react-toastify";
-
+const isValidHex = (val = "") =>
+  /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
+const normalizeHex = (val = "") => {
+  const v = (val || "").trim();
+  if (/^#([0-9A-Fa-f]{6})$/.test(v)) return v.toLowerCase();
+  if (/^#([0-9A-Fa-f]{3})$/.test(v)) {
+    const short = v.slice(1).split("");
+    return ("#" + short.map((c) => c + c).join("")).toLowerCase();
+  }
+  return v;
+};
 const ServiceEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,7 +91,24 @@ const ServiceEdit = () => {
       setSaving(false);
     }
   };
-
+  const handleColorTextChange = (e) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+    if (isValidHex(value)) {
+      const normalized = normalizeHex(value);
+      setForm((p) => ({ ...p, [name]: normalized }));
+      setErrors((p) => {
+        const c = { ...p };
+        delete c[name];
+        return c;
+      });
+    } else {
+      setErrors((p) => ({
+        ...p,
+        [name]: "Mã màu không hợp lệ. Vui lòng dùng #rrggbb.",
+      }));
+    }
+  };
   /* ---------- UI ---------- */
 
   if (loading) {
@@ -190,7 +217,7 @@ const ServiceEdit = () => {
                   style={{ minWidth: "3rem", minHeight: "3rem" }}
                 />
                 <input
-                  type="color"
+                  type="text"
                   name="color"
                   value={form.color}
                   onChange={handleColorTextChange}
@@ -206,12 +233,10 @@ const ServiceEdit = () => {
             </div>
           </div>
 
-          {/* General error */}
           {errors.general && (
             <div className="pt-4 text-red-600 text-sm">{errors.general}</div>
           )}
 
-          {/* Footer Actions */}
           <div className="px-0 mt-8 pt-5 border-t border-gray-200 flex items-center justify-end gap-2">
             <Link
               to="/services"

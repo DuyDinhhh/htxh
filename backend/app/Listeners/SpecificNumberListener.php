@@ -53,6 +53,7 @@ class SpecificNumberListener
             $message = [
                 "device_id" => $data['device_id'],
                 "number" => $ticket->ticket_number,
+                "service_name" => ($ticket->service->name ?? null),
                 "device_name"=>$device->name
             ];
             $mqtt = MQTT::connection('publisher');

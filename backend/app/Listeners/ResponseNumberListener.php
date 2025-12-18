@@ -54,7 +54,8 @@ class ResponseNumberListener
 
         $ticket = null;
         $serviceName = null;
-       
+      
+        //goi so duoc chuyen quay
         $ticket = Ticket::where('device_id',$data['device_id'])
                     ->where('status','waiting')
                     ->whereBetween('created_at', [$startOfDay, $endOfDay])

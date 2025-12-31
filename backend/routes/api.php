@@ -20,9 +20,10 @@ Route::get('/config',[ConfigController::class,'index']);
 Route::get('/config/buttons', [ButtonConfigController::class, 'index']);
 Route::get('/ticket/validate-qr', [QRCodeController::class, 'validateQR']);
 Route::get('/ticket/generate-new-qr', [QRCodeController::class, 'generateNewQR']);
-Route::post('/ticket/{id}',[TicketController::class,'store']);
 Route::get('/service/list',[ServiceController::class,'list']);
 
+Route::post('/ticket/{id}',[TicketController::class,'store']);
+Route::get('/service/activelist',[ServiceController::class,'activelist']);
 
 
 Route::middleware('jwt')->group(function () {

@@ -41,6 +41,22 @@ class ServiceController extends Controller
         ]);
     }
 
+    public function activelist(){
+        $service = Service::has('devices')->get();
+        if(!$service){
+            return response()->json([
+                'error' => 'Services not found.'
+            ],404);
+        }
+
+        return response()->json([
+            'status'=>true,
+            'message'=>"Service list retrieve successfully.",
+            'services'=>$service
+        ]);
+    }
+    
+
     public function show($id){
         $service = Service::findOrFail($id);
 
@@ -58,7 +74,7 @@ class ServiceController extends Controller
 
 
     public function store(StoreServiceRequest $request){
-        
+
         $service = new Service();
         $service -> name = $request ->name;
         $service -> color = $request -> color;
@@ -87,7 +103,6 @@ class ServiceController extends Controller
         $service -> color = $request -> color;
         $service -> queue_number = $request -> queue_number;
         // $service -> updated_by = auth()->id();
-
         $service -> save();
         return response()->json([
             'status'=>true,

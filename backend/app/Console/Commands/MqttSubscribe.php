@@ -83,7 +83,7 @@ class MqttSubscribe extends Command
             ->withProperties([
                 'message' => $message,  
             ])
-            ->log($topic);
+        ->log($topic);
     }
 
 }

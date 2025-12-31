@@ -132,7 +132,7 @@ const TicketButtonConfig = () => {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
-
+  const [showControls, setShowControls] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const resizeListenerRef = useRef(null);
@@ -735,6 +735,7 @@ const TicketButtonConfig = () => {
                 : "Không chọn (chỉnh toàn cục)"}
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             <button
               title="Áp dụng cài đặt đã chọn cho tất cả dịch vụ"
@@ -876,7 +877,15 @@ const TicketButtonConfig = () => {
             />
             Áp dụng kích thước cố định trên di động
           </label>
-
+          <div className="flex items-center gap-2">
+            <button
+              title="Ẩn bảng điều khiển"
+              onClick={() => setShowControls(false)} // NEW
+              className="px-2 py-1 rounded bg-gray-100 text-xs"
+            >
+              Ẩn
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={resetSelected}
@@ -918,7 +927,15 @@ const TicketButtonConfig = () => {
         className="w-full flex-none flex flex-col items-center mb-2 justify-center px-10  py-4"
         style={{ backgroundColor: headerBg }}
       >
-        <ControlsPanel />
+        {!showControls && (
+          <button
+            onClick={() => setShowControls(true)}
+            className="absolute top-2 right-2 px-2 py-1 rounded bg-white text-xs shadow"
+          >
+            Hiện bảng điều khiển
+          </button>
+        )}
+        {showControls && <ControlsPanel />}{" "}
         <img
           src={logoSrc}
           alt="Header Logo"

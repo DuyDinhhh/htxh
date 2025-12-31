@@ -7,6 +7,8 @@ use App\Models\Service;
 use App\Models\Device;
 use App\Models\Ticket;
 use Carbon\Carbon;
+use Spatie\Activitylog\Models\Activity;
+
 class TicketController extends Controller
 {
     public function index(Request $request){
@@ -107,6 +109,14 @@ class TicketController extends Controller
         }
         catch(\Throwable $e){
             \Log::error('Failed to store ticket', ['error' => $e->getMessage()]);
+            activity()
+                ->useLog('ticket')    
+                ->event('error')  
+                ->withProperties([
+                    'message' => $e->getMessage(),
+                ])
+                ->log('Failed to store ticket');
+                
             return response()->json([
                 'status'=>false,
                 'message'=> $e->getMessage(),

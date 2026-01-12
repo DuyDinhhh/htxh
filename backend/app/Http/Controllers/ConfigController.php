@@ -116,27 +116,49 @@ class ConfigController extends Controller
     }
 
 
+    // public function resetNumber(){
+    //     $services = Service::whereHas('devices')
+    //         ->whereNull('deleted_at')
+    //         ->get();
+
+    //     $startOfDay = Carbon::today()->startOfDay();
+    //     $endOfDay = Carbon::today()->endOfDay();     
+        
+    //     foreach($services as $service){
+    //         $tickets = Ticket::where('service_id', $service->id)
+    //             ->whereBetween('created_at', [$startOfDay, $endOfDay])          
+    //             ->get();
+
+    //         foreach ($tickets as $ticket) {
+    //             $ticket->sequence = 0;  
+    //             $ticket->save();
+    //         }
+    //     }
+    //     return response()->json([
+    //         'message'=> "Ticket number reset successfully."
+    //     ]);
+    // }
+
     public function resetNumber(){
         $services = Service::whereHas('devices')
             ->whereNull('deleted_at')
             ->get();
-
+        
         $startOfDay = Carbon::today()->startOfDay();
         $endOfDay = Carbon::today()->endOfDay();     
         
+        $totalUpdated = 0;
         foreach($services as $service){
-            $tickets = Ticket::where('service_id', $service->id)
+            $updated = Ticket::where('service_id', $service->id)
                 ->whereBetween('created_at', [$startOfDay, $endOfDay])          
-                ->get();
-
-            foreach ($tickets as $ticket) {
-                $ticket->sequence = 0;  
-                $ticket->save();
-            }
+                ->update(['sequence' => 0]);
+            
+            $totalUpdated += $updated;
         }
-
+        
         return response()->json([
-            'message'=> "Ticket number reset successfully."
+            'status' => true,
+            'message' => "Đã reset {$totalUpdated} tickets thành công."
         ]);
     }
 }

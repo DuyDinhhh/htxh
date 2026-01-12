@@ -47,7 +47,7 @@ class MqttSubscribe extends Command
         $mqtt->subscribe($topic, function (string $topic, string $message) {
             $this->info(sprintf("Received message on topic [%s]: %s", $topic, $message));
             $data = json_decode($message, true);
-            if($topic !== "response"){
+            if($topic !== "responsenumber"){
                 $this->logMqttEvent('receive', $topic, $data);}
             if($topic === 'feedback'){
                 event(new \App\Events\FeedbackReceived($data));

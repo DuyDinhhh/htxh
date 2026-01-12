@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Device;
 use PhpMqtt\Client\Facades\MQTT;
+use Spatie\Activitylog\Models\Activity;
 
 class RegisterDeviceListener
 {
@@ -39,6 +40,14 @@ class RegisterDeviceListener
         }
         catch(\Throwable $e){
             \Log::error('Failed to store device', ['error' => $e->getMessage(), 'data' => $data]);
+            activity()
+                ->useLog('mqtt')
+                ->event('error')
+                ->withProperties([
+                    'error' => $e->getMessage(),
+                    'data'  => $data,
+                ])
+                ->log('Failed to register device');
         }
     }
 }

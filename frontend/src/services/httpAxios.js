@@ -1,16 +1,12 @@
 import axios from "axios";
 
 const appEnv = process.env.REACT_APP_ENV || "local";
+
 const apiHost = window.location.hostname;
 const apiPort = "8000";
 const apiProtocol = window.location.protocol;
 
-let baseURL;
-if (appEnv === "local") {
-  baseURL = `${apiProtocol}//${apiHost}:${apiPort}/api/`;
-} else {
-  baseURL = `${apiProtocol}//${apiHost}/api/`;
-}
+let baseURL = `${apiProtocol}//${apiHost}:${apiPort}/api/`;
 
 const httpAxios = axios.create({
   baseURL: baseURL,
@@ -58,11 +54,7 @@ export const getImageUrl = (photo) => {
   const apiHost = window.location.hostname;
 
   if (photo) {
-    if (appEnv === "local") {
-      return `${apiProtocol}//${apiHost}:8000/images/config/${photo}`;
-    } else {
-      return `${apiProtocol}//${apiHost}/images/config/${photo}`;
-    }
+    return `${apiProtocol}//${apiHost}:8000/images/config/${photo}`;
   }
   return null;
 };

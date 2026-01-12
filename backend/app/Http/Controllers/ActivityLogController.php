@@ -14,6 +14,7 @@ class ActivityLogController extends Controller
         $perPage = (int) $request->input('per_page', 15);
 
         $logs = Activity::query()
+            ->where('log_name', '!=', 'mqtt')
             ->when($request->filled('log_name'), function ($q) use ($request) {
                 $q->where('log_name', $request->log_name);
             })
@@ -49,8 +50,6 @@ class ActivityLogController extends Controller
                 $q->orderBy('created_at', 'desc');
             })
             ->with(['subject', 'causer'])
-            ->where('log_name', '!=', 'mqtt')
-
             ->paginate($perPage);
 
         return response()->json([

@@ -19,7 +19,6 @@ pipeline {
                 script {
                     def branchName = env.BRANCH_NAME ?: 'unknown'
                     env.NODE_IP = sh(script: "hostname -I | awk '{print \$1}'", returnStdout: true).trim()
-
                     if (branchName == 'main') {
                         env.APP_ENV = "prod"
                         env.AGENT_LABEL = "built-in"
@@ -29,11 +28,11 @@ pipeline {
                     } else {
                         env.APP_ENV = "staging"  
                         env.AGENT_LABEL = "node-01"
-                    }                    
+                    }    
                 }
             }
         }
-         stage('Cleanup') {
+        stage('Cleanup') {
             agent { label "${env.AGENT_LABEL}" } 
             steps {
                 sh 'docker compose -f docker-compose.yml down'

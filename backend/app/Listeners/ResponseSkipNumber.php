@@ -25,64 +25,75 @@ class ResponseSkipNumber
      */
     public function handle(NumberSkipRequest $event): void
     {
-        $data = $event -> data;
-        $prefix = env('APP_ENV', "");
-        $clientId = 'publish-' . $data['device_id'].$prefix ;
-        config(['mqtt-client.connections.default.client_id' => $clientId]);
-        
-        $startOfDay = Carbon::today()->startOfDay();
-        $endOfDay = Carbon::today()->endOfDay();  
-        
-        //danh dau da goi
-        $oldTicket = Ticket::where('device_id', $data['device_id'])
-            ->where('status', 'processing')
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->first();
-        
-        if($oldTicket){
-            $oldTicket->status = "called";
-            $oldTicket->save();
-        }
-
-        //goi so skipped tu thiet bi do
-        $ticket = Ticket::where('device_id',$data['device_id'])
-                ->where('status','skipped')
+        try {
+            $data = $event -> data;
+            $prefix = env('APP_ENV', "");
+            $clientId = 'publish-' . $data['device_id'].$prefix ;
+            config(['mqtt-client.connections.default.client_id' => $clientId]);
+            
+            $startOfDay = Carbon::today()->startOfDay();
+            $endOfDay = Carbon::today()->endOfDay();  
+            
+            //danh dau da goi
+            $oldTicket = Ticket::where('device_id', $data['device_id'])
+                ->where('status', 'processing')
                 ->whereBetween('created_at', [$startOfDay, $endOfDay])
                 ->first();
+            
+            if($oldTicket){
+                $oldTicket->status = "called";
+                $oldTicket->save();
+            }
 
-        if ($ticket) {
-            $message = [
-                "device_id" => $data['device_id'],
-                "number" => $ticket->ticket_number,
-                "service_name" => ($ticket->service->name ?? null),
-                "device_name"=>optional($ticket->device)->name,
-            ];
-            $mqtt = MQTT::connection('publisher');
-            $mqtt->publish("responsenumber", json_encode($message));
+            //goi so skipped tu thiet bi do
+            $ticket = Ticket::where('device_id',$data['device_id'])
+                    ->where('status','skipped')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->first();
+
+            if ($ticket) {
+                $message = [
+                    "device_id" => $data['device_id'],
+                    "number" => $ticket->ticket_number,
+                    "service_name" => ($ticket->service->name ?? null),
+                    "device_name"=>optional($ticket->device)->name,
+                ];
+                $mqtt = MQTT::connection('publisher');
+                $mqtt->publish("responsenumber", json_encode($message));
+                activity()
+                    ->useLog('mqtt')  
+                    ->event('response')   
+                    ->withProperties([
+                        'message' => $message,  
+                    ])
+                    ->log('responsenumber');
+                $mqtt->disconnect();
+                $this->logMqttEvent('response', 'responsenumber', json_encode($message));
+                $ticket->status = "processing";
+                $ticket->touch(); 
+            } else {
+                $message = [
+                    "device_id" => $data['device_id'],
+                    "number" => "NoAvailable",
+                ];
+                $mqtt = MQTT::connection('publisher');
+                $mqtt->publish("responsenumber", json_encode($message));
+                $this->logMqttEvent('response', 'responsenumber', json_encode($message));
+                // $mqtt->publish("response-recall-number", json_encode($message));
+                $mqtt->disconnect();
+            }
+        } catch (\Throwable $e) {
             activity()
-                ->useLog('mqtt')  
-                ->event('response')   
+                ->useLog('mqtt')
+                ->event('error')
                 ->withProperties([
-                    'message' => $message,  
+                    'error' => $e->getMessage(),
+                    'data'  => $data,
                 ])
-                ->log('responsenumber');
-            $mqtt->disconnect();
-            $this->logMqttEvent('response', 'responsenumber', json_encode($message));
-            $ticket->status = "processing";
-            $ticket->touch(); 
-        } else {
-            $message = [
-                "device_id" => $data['device_id'],
-                "number" => "NoAvailable",
-            ];
-            $mqtt = MQTT::connection('publisher');
-            $mqtt->publish("responsenumber", json_encode($message));
-            $this->logMqttEvent('response', 'responsenumber', json_encode($message));
-
-            // $mqtt->publish("response-recall-number", json_encode($message));
-            $mqtt->disconnect();
+                ->log('Failed to response skip number');
         }
     }
+
     private function logMqttEvent($event, $topic, $message)
     {
         activity()

@@ -9,6 +9,7 @@ use App\Models\Feedback;
 use App\Models\Device;
 use App\Models\Ticket;
 use Carbon\Carbon;
+use Spatie\Activitylog\Models\Activity;
 
 class SaveFeedbackListener
 {
@@ -52,6 +53,14 @@ class SaveFeedbackListener
             $feedback->save();
         } catch (\Throwable $e) {
             \Log::error('Failed to store feedback', ['error' => $e->getMessage(), 'data' => $data]);
+            activity()
+                ->useLog('mqtt')
+                ->event('error')
+                ->withProperties([
+                    'error' => $e->getMessage(),
+                    'data'  => $data,
+                ])
+                ->log('Failed to store feedback');
         }
     }
 }

@@ -123,6 +123,7 @@ const DeploymentLog = () => {
     setLoading(true);
     try {
       const res = await ActivityLogService.deployment(page, buildParams());
+      console.log(res);
       const payload = res?.data ?? res;
       const items = payload?.data ?? [];
       setLogs(items);
@@ -208,20 +209,8 @@ const DeploymentLog = () => {
             <option value="receive">receive</option>
             <option value="connect">connect</option>
             <option value="response">response</option>
+            <option value="error">error</option>
           </select>
-
-          {/* <input
-            className="px-3 py-2 rounded border"
-            placeholder="causer_type (FQN)"
-            value={causerType}
-            onChange={(e) => setCauserType(e.target.value)}
-          /> */}
-          {/* <input
-            className="px-3 py-2 rounded border"
-            placeholder="causer_id"
-            value={causerId}
-            onChange={(e) => setCauserId(e.target.value)}
-          /> */}
 
           <input
             type="date"

@@ -6,6 +6,8 @@ use App\Events\DeviceStatusReceived;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Device;
+use Spatie\Activitylog\Models\Activity;
+
 class UpdateDeviceStatusListener
 {
     /**
@@ -32,10 +34,14 @@ class UpdateDeviceStatusListener
                 ['status' => $data['status']]
             );
          } catch (\Throwable $e) {
-            \Log::error('Failed to update device status', [
-                'error' => $e->getMessage(),
-                'data'  => $data ?? null,
-            ]);
+            activity()
+                ->useLog('mqtt')
+                ->event('error')
+                ->withProperties([
+                    'error' => $e->getMessage(),
+                    'data'  => $data,
+                ])
+                ->log('Failed to update device status');
         }
     }
 

@@ -47,7 +47,7 @@ class MqttSubscribe extends Command
         $mqtt->subscribe($topic, function (string $topic, string $message) {
             $this->info(sprintf("Received message on topic [%s]: %s", $topic, $message));
             $data = json_decode($message, true);
-            if($topic !== "response"){
+            if($topic !== "responsenumber"){
                 $this->logMqttEvent('receive', $topic, $data);}
             if($topic === 'feedback'){
                 event(new \App\Events\FeedbackReceived($data));
@@ -55,6 +55,8 @@ class MqttSubscribe extends Command
                 event(new \App\Events\DeviceStatusReceived($data)); 
             }elseif ($topic === 'requestnumber'){
                 event(new \App\Events\NumberRequest($data));
+            }elseif ($topic === 'requestskipnumber'){
+                event(new \App\Events\NumberSkipRequest($data));
             }elseif ($topic === 'recallnumber'){
                 event(new \App\Events\NumberRecall($data));
             }elseif ($topic === 'skipnumber'){
@@ -68,7 +70,6 @@ class MqttSubscribe extends Command
             }elseif ($topic === 'transferservice'){
                 event(new \App\Events\ServiceTransfer($data));
             } else {
-                \Log::debug('default subscribee');
             }
         });
         $mqtt->loop(true);
@@ -82,7 +83,7 @@ class MqttSubscribe extends Command
             ->withProperties([
                 'message' => $message,  
             ])
-            ->log($topic);
+        ->log($topic);
     }
 
 }

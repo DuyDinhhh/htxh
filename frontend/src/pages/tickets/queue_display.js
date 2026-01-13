@@ -34,8 +34,17 @@ export default function QueueDisplayWithTTS() {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const firstLoadRef = useRef(true);
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const prevTopIdRef = useRef(null);
   const prevTopUpdatedMsRef = useRef(0);
@@ -311,7 +320,6 @@ export default function QueueDisplayWithTTS() {
 
           setTickets((prev) => {
             const newTickets = [row, ...prev.filter((t) => t.id !== row.id)];
-            console.log("Updated tickets:", newTickets.slice(0, MAX_ROWS));
             return newTickets.slice(0, MAX_ROWS);
           });
         } else {
@@ -339,7 +347,7 @@ export default function QueueDisplayWithTTS() {
   // ---------- Watch for ticket changes and trigger TTS ----------
   useEffect(() => {
     if (!tickets || tickets.length === 0) return;
-
+    if (!ttsEnabled) return;
     const top = tickets[0];
     const topId = top?.id ?? top?.ticket_number ?? null;
     const updatedRaw =
@@ -356,6 +364,18 @@ export default function QueueDisplayWithTTS() {
       prevTopIdRef.current = topId;
       prevTopUpdatedMsRef.current = topUpdatedMs;
       firstLoadRef.current = false;
+      const ticketPartRaw = String(top?.ticket_number ?? "")
+        .replace(/\s+/g, "")
+        .trim();
+
+      let rawCounter = String(top?.device?.name ?? "")
+        .replace(/\s+/g, " ")
+        .trim();
+      rawCounter = rawCounter.replace(/^qu(â|a)y\s*/i, "").trim();
+      const parts = rawCounter.split(" ");
+      const lastPart = parts[parts.length - 1];
+
+      speakMulti(ticketPartRaw, lastPart);
       return;
     }
 
@@ -400,69 +420,59 @@ export default function QueueDisplayWithTTS() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
-      {/* Header */}
-      <header
-        className="w-full flex-none flex flex-col justify-center items-center py-2 relative"
-        style={{ backgroundColor: headerBg }}
-      >
-        <button
-          onClick={() => setTtsEnabled((v) => !v)}
-          className={`absolute top-2 right-2 px-3 py-1 rounded-xl text-sm font-semibold border shadow`}
-          title={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
-          aria-label={ttsEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
-          style={{
-            backgroundColor: ttsEnabled ? "#ecfdf5" : "#fff1f2",
-            color: ttsEnabled ? "#166534" : "#7f1d1d",
-            borderColor: ttsEnabled ? "#86efac" : "#fca5a5",
-          }}
-        >
-          {ttsEnabled ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"
+      <header className="bg-card border-b-4 border-red-700 border-primary ">
+        <div className="container mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 rounded-lg shadow-md ">
+              <img
+                src="/images/agribank-logo2.png"
+                alt="Logo"
+                className="object-contain h-full w-full"
               />
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="w-6 h-6"
+            </div>
+            <div
+              className="text-md font-semibold uppercase"
+              style={{ color: headerTextColor }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"
-              />
-            </svg>
-          )}
-        </button>
+              <h1 className="text-3xl font-bold text-primary tracking-tight">
+                AGRIBANK
+              </h1>
+              <div
+                className="text-md font-semibold text-center uppercase"
+                style={{ color: headerTextColor }}
+              >
+                {loadingConfig
+                  ? "Đang tải cấu hình..."
+                  : config?.text_top ?? ""}
+              </div>{" "}
+            </div>
+          </div>
 
-        <img
-          src={logoSrc}
-          alt="Header Logo"
-          className="h-20 w-96 mb-2 object-contain"
-        />
-        <div
-          className="text-lg font-semibold text-center uppercase"
-          style={{ color: headerTextColor }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
+          <div
+            className="flex items-center gap-6"
+            style={{ color: headerTextColor }}
+          >
+            <div className="text-right">
+              <div className="text-4xl font-bold text-foreground tracking-tight">
+                {currentTime.toLocaleTimeString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium mt-1">
+                {currentTime.toLocaleDateString("vi-VN", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-8 w-full">
         {isLoadingAll ? (
           <div className="text-center text-gray-300">Chưa có dữ liệu</div>
@@ -479,25 +489,23 @@ export default function QueueDisplayWithTTS() {
               <table className="min-w-[520px] w-full table-auto border-collapse">
                 <thead
                   className="text-black"
-                  style={{ backgroundColor: tableHeaderBg }}
+                  style={{ backgroundColor: "#af1b40" }}
                 >
                   <tr>
                     <th
-                      className="px-4 py-3 w-[400px] text-2xl text-center"
+                      className="px-4 py-3 w-[400px] text-3xl text-center"
                       style={{
                         border: ` ${borderAccent}`,
-                        borderRight: `1px solid ${borderAccent}`,
-
-                        color: tableTextColor,
+                        color: "#fff",
                       }}
                     >
                       Số thứ tự
                     </th>
                     <th
-                      className="px-4 py-3 w-[400px] text-2xl text-center"
+                      className="px-4 py-3 w-[400px] text-3xl text-center"
                       style={{
                         border: `${borderAccent}`,
-                        color: tableTextColor,
+                        color: "#fff",
                       }}
                     >
                       Quầy
@@ -514,20 +522,15 @@ export default function QueueDisplayWithTTS() {
                         style={{ backgroundColor: rowBg }}
                       >
                         <td
-                          className="px-4 py-3 text-2xl text-center"
+                          className="px-4 py-3 text-3xl text-center font-bold "
                           style={{
-                            borderTop: `1px solid ${borderAccent}`,
-                            borderRight: `1px solid ${borderAccent}`,
                             color: tableTextColor,
                           }}
                         >
                           <span
                             style={{
-                              color: isMostRecent
-                                ? tableTextActive
-                                : tableTextColor,
-                              fontWeight: isMostRecent ? 800 : 500,
-                              fontSize: isMostRecent && "30px",
+                              color: isMostRecent ? "#af1b40" : tableTextColor,
+                              fontSize: isMostRecent && "45px",
                             }}
                             className={isMostRecent ? "flicker" : ""}
                           >
@@ -535,10 +538,8 @@ export default function QueueDisplayWithTTS() {
                           </span>
                         </td>
                         <td
-                          className="px-4 py-3 text-center text-2xl font-bold ${} "
+                          className="px-4 py-3 text-center text-3xl font-bold ${} "
                           style={{
-                            borderLeft: `1px solid ${borderAccent}`,
-                            borderTop: `1px solid ${borderAccent}`,
                             color: tableTextColor,
                             fontSize: isMostRecent && "30px",
                           }}
@@ -555,22 +556,22 @@ export default function QueueDisplayWithTTS() {
         )}
       </main>
 
-      {/* Footer */}
       <footer
-        className="w-full flex-none flex flex-col justify-center items-center py-4 overflow-hidden"
-        style={{ backgroundColor: footerBg }}
+        className="w-full flex-none flex flex-col justify-center items-center py-6 overflow-hidden"
+        style={{ backgroundColor: "#af1b40" }}
       >
         <div
-          className="text-lg font-bold uppercase whitespace-nowrap"
+          className="text-2xl font-bold uppercase whitespace-nowrap"
           style={{
             display: "inline-block",
             animation: "marquee 10s linear infinite",
-            color: footerTextColor,
+            color: "#FFFFFF",
           }}
         >
           {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
         </div>
       </footer>
+
       <style jsx>{`
         @keyframes flicker {
           0% {

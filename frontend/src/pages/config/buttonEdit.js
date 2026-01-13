@@ -7,6 +7,7 @@ import ConfigService from "../../services/configService";
 import { getImageUrl } from "../../services/httpAxios";
 import { toast } from "react-toastify";
 import { debounce } from "lodash";
+import Footer from "../../components/kiosk/footer";
 
 const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
@@ -131,7 +132,7 @@ const TicketButtonConfig = () => {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
-
+  const [showControls, setShowControls] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const resizeListenerRef = useRef(null);
@@ -734,6 +735,7 @@ const TicketButtonConfig = () => {
                 : "Không chọn (chỉnh toàn cục)"}
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             <button
               title="Áp dụng cài đặt đã chọn cho tất cả dịch vụ"
@@ -875,7 +877,15 @@ const TicketButtonConfig = () => {
             />
             Áp dụng kích thước cố định trên di động
           </label>
-
+          <div className="flex items-center gap-2">
+            <button
+              title="Ẩn bảng điều khiển"
+              onClick={() => setShowControls(false)} // NEW
+              className="px-2 py-1 rounded bg-gray-100 text-xs"
+            >
+              Ẩn
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={resetSelected}
@@ -914,15 +924,22 @@ const TicketButtonConfig = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden relative">
       <header
-        className="w-full flex-none flex flex-col items-center mb-2 justify-center px-10  py-1"
+        className="w-full flex-none flex flex-col items-center mb-2 justify-center px-10  py-4"
         style={{ backgroundColor: headerBg }}
       >
-        <ControlsPanel />
-
+        {!showControls && (
+          <button
+            onClick={() => setShowControls(true)}
+            className="absolute top-2 right-2 px-2 py-1 rounded bg-white text-xs shadow"
+          >
+            Hiện bảng điều khiển
+          </button>
+        )}
+        {showControls && <ControlsPanel />}{" "}
         <img
           src={logoSrc}
           alt="Header Logo"
-          className="h-20 w-96 mb-2 object-contain"
+          className="h-20 w-96 object-contain"
         />
         <div
           className="text-lg font-semibold text-center uppercase"
@@ -1040,7 +1057,7 @@ const TicketButtonConfig = () => {
                                 ? "Bỏ chọn để chỉnh toàn cục"
                                 : "Chọn nút để chỉnh"
                             }
-                            className={`absolute top-1 right-1 z-20 px-1 py-0.5 rounded text-xs border bg-white/80 ${
+                            className={`absolute top-1 right-1 z-20 px-1 py-0.5 rounded-xl text-xs border bg-white/80 ${
                               selected ? "ring-2 ring-indigo-300" : ""
                             }`}
                             style={{ transform: "translate(0,0)" }}
@@ -1058,7 +1075,7 @@ const TicketButtonConfig = () => {
                               startDrag(ev, service.id, target);
                             }}
                             className={`
-                              rounded text-white shadow transition uppercase font-semibold text-xl sm:text-2xl md:text-2xl
+                              rounded-xl text-white shadow transition uppercase font-semibold text-xl sm:text-2xl md:text-2xl
                               flex items-center justify-center whitespace-normal break-words leading-tight
                       
                             `}
@@ -1139,7 +1156,7 @@ const TicketButtonConfig = () => {
                             ? "Bỏ chọn để chỉnh toàn cục"
                             : "Chọn nút để chỉnh"
                         }
-                        className={`absolute -top-3 -right-3 z-30 px-1 py-0.5 rounded text-xs border bg-white/90 ${
+                        className={`absolute -top-3 -right-3 z-30 px-1 py-0.5 rounded-xl text-xs border bg-white/90 ${
                           selected ? "ring-2 ring-indigo-300" : ""
                         }`}
                       >
@@ -1152,7 +1169,7 @@ const TicketButtonConfig = () => {
                           startDrag(ev, service.id, target);
                         }}
                         className={`
-                          rounded text-white shadow transition uppercase font-semibold text-xl sm:text-2xl md:text-2xl
+                          rounded-xl text-white shadow transition uppercase font-semibold text-xl sm:text-2xl md:text-2xl
                           flex items-center justify-center whitespace-normal break-words leading-tight
                           
                         `}
@@ -1181,21 +1198,12 @@ const TicketButtonConfig = () => {
         )}
       </main>
 
-      <footer
-        className="w-full mt-2 flex-none flex flex-col justify-center items-center py-4"
-        style={{ backgroundColor: footerBg }}
-      >
-        <div
-          className="text-lg font-bold text-center uppercase"
-          style={{
-            display: "inline-block",
-            animation: "marquee 10s linear infinite",
-            color: footerTextColor,
-          }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
-        </div>
-      </footer>
+      <Footer
+        footerBg={footerBg}
+        footerTextColor={footerTextColor}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
     </div>
   );
 };

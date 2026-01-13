@@ -6,6 +6,9 @@ import { toast } from "react-toastify";
 import { debounce } from "lodash";
 import { getImageUrl } from "../../services/httpAxios";
 import { useLocation, useNavigate } from "react-router-dom";
+import Header from "../../components/kiosk/header";
+import Footer from "../../components/kiosk/footer";
+
 const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
 const DEFAULT_BUTTON_BG = "#8B4513";
@@ -177,9 +180,6 @@ const TicketCreateQR = () => {
               response.ticket.ticket_number
             );
           }
-          // toast.success(response?.message || "Lấy số thành công.", {
-          //   autoClose: 500,
-          // });
         } catch (err) {
           toast.error(
             err?.response?.data?.message || "Đăng ký số thứ tự thất bại.",
@@ -202,7 +202,6 @@ const TicketCreateQR = () => {
   }, [debouncedRegister]);
 
   const handleRegister = (id) => debouncedRegister(id);
-  const serviceColumns = chunkArray(services, 5);
 
   const headerBg = config?.bg_top_color ?? DEFAULT_BG;
   const headerTextColor = config?.text_top_color ?? DEFAULT_HEADER_TEXT_COLOR;
@@ -215,22 +214,13 @@ const TicketCreateQR = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
-      <header
-        className="w-full flex-none flex flex-col items-center mb-2 justify-center px-10  py-1"
-        style={{ backgroundColor: headerBg }}
-      >
-        <img
-          src={logoSrc}
-          alt="Header Logo"
-          className="h-20 w-96 mb-2 object-contain"
-        />
-        <div
-          className="text-lg font-semibold text-center uppercase"
-          style={{ color: headerTextColor }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
-        </div>
-      </header>
+      <Header
+        headerBg={headerBg}
+        headerTextColor={headerTextColor}
+        logoSrc={logoSrc}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
       <main className="flex-1 flex flex-col px-4 py-2 sm:px-6 md:px-8 overflow-hidden">
         {number ? (
           <div className="flex flex-col items-center justify-center h-full">
@@ -253,7 +243,7 @@ const TicketCreateQR = () => {
                   className={`
               w-full max-w-[420px]
               h-[85px]  // Fixed height for each button
-              rounded text-white shadow transition
+              rounded-xl text-white shadow transition
               uppercase font-semibold
               text-xl sm:text-2xl md:text-2xl
               p-2 sm:p-3 md:p-4
@@ -289,21 +279,12 @@ const TicketCreateQR = () => {
         )}
       </main>
 
-      <footer
-        className="w-full mt-2 flex-none flex flex-col justify-center items-center py-4"
-        style={{ backgroundColor: footerBg }}
-      >
-        <div
-          className="text-lg font-bold text-center uppercase"
-          style={{
-            display: "inline-block",
-            animation: "marquee 10s linear infinite",
-            color: footerTextColor,
-          }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
-        </div>
-      </footer>
+      <Footer
+        footerBg={footerBg}
+        footerTextColor={footerTextColor}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
     </div>
   );
 };

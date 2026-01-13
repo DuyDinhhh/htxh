@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import ConfigService from "../../services/configService";
 import { getImageUrl } from "../../services/httpAxios";
 import TicketService from "../../services/ticketService";
+import Header from "../../components/kiosk/header";
+import Footer from "../../components/kiosk/footer";
 
 const DEFAULT_BG = "#B3AAAA";
 const isValidHex = (val = "") =>
@@ -143,22 +145,13 @@ const QRCTicketGenerator = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
-      <header
-        className="w-full flex-none flex flex-col justify-center items-center py-2 relative"
-        style={{ backgroundColor: headerBg }}
-      >
-        <img
-          src={logoSrc}
-          alt="Header Logo"
-          className="h-20 w-96 mb-2 object-contain"
-        />
-        <div
-          className="text-lg font-semibold text-center uppercase"
-          style={{ color: headerTextColor }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
-        </div>
-      </header>
+      <Header
+        headerBg={headerBg}
+        headerTextColor={headerTextColor}
+        logoSrc={logoSrc}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 w-full">
         <QRCodeCanvas
@@ -173,21 +166,12 @@ const QRCTicketGenerator = () => {
         >{`${countdown}s`}</p>
       </main>
 
-      <footer
-        className="w-full flex-none flex flex-col justify-center items-center py-4 overflow-hidden"
-        style={{ backgroundColor: footerBg }}
-      >
-        <div
-          className="text-lg font-bold uppercase whitespace-nowrap"
-          style={{
-            display: "inline-block",
-            animation: "marquee 10s linear infinite",
-            color: footerTextColor,
-          }}
-        >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
-        </div>
-      </footer>
+      <Footer
+        footerBg={footerBg}
+        footerTextColor={footerTextColor}
+        loadingConfig={loadingConfig}
+        config={config}
+      />
     </div>
   );
 };

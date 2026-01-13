@@ -52,7 +52,7 @@ class ConfigController extends Controller
 
             $file = $request->file('photo');
             $exten = $file->extension();
-            $imageName = 'photo-logo.' . $exten;
+            $imageName = 'photo-logo.'. date('YmHis') . $exten;
             $file->move(public_path('images/config'), $imageName);
 
             $config->photo = $imageName;
@@ -66,6 +66,7 @@ class ConfigController extends Controller
             'config' => $config
         ]);
     }
+    
     public function update($id, StoreConfigRequest $request)
     {
         $config = Config::findOrFail($id);
@@ -99,7 +100,7 @@ class ConfigController extends Controller
 
             $file = $request->file('photo');
             $exten = $file->extension();
-            $imageName = 'photo-logo.' . $exten;
+            $imageName = 'photo-logo.'.date('YmHis') . $exten;
             $file->move(public_path('images/config'), $imageName);
 
             $config->photo = $imageName;
@@ -115,26 +116,49 @@ class ConfigController extends Controller
     }
 
 
+    // public function resetNumber(){
+    //     $services = Service::whereHas('devices')
+    //         ->whereNull('deleted_at')
+    //         ->get();
+
+    //     $startOfDay = Carbon::today()->startOfDay();
+    //     $endOfDay = Carbon::today()->endOfDay();     
+        
+    //     foreach($services as $service){
+    //         $tickets = Ticket::where('service_id', $service->id)
+    //             ->whereBetween('created_at', [$startOfDay, $endOfDay])          
+    //             ->get();
+
+    //         foreach ($tickets as $ticket) {
+    //             $ticket->sequence = 0;  
+    //             $ticket->save();
+    //         }
+    //     }
+    //     return response()->json([
+    //         'message'=> "Ticket number reset successfully."
+    //     ]);
+    // }
+
     public function resetNumber(){
         $services = Service::whereHas('devices')
             ->whereNull('deleted_at')
             ->get();
-
-        $today = Carbon::today()->format('Y-m-d');
         
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();     
+        
+        $totalUpdated = 0;
         foreach($services as $service){
-            $tickets = Ticket::whereDate('created_at', $today)
-                ->where('ticket_number', 'like', $service->queue_number.'%')            
-                ->get();
-
-            foreach ($tickets as $ticket) {
-                $ticket->sequence = 0;  
-                $ticket->save();
-            }
+            $updated = Ticket::where('service_id', $service->id)
+                ->whereBetween('created_at', [$startOfDay, $endOfDay])          
+                ->update(['sequence' => 0]);
+            
+            $totalUpdated += $updated;
         }
-
+        
         return response()->json([
-            'message'=> "Ticket number reset successfully."
+            'status' => true,
+            'message' => "Đã reset {$totalUpdated} tickets thành công."
         ]);
     }
 }

@@ -105,4 +105,66 @@ class AuthController extends Controller
             return response()->json(['error' => 'Failed to update user'], 500);
         }
     }
+
+    public function authenticate(AuthenticateRequest $request)
+    {
+        $adapterType = $request->adapter_type;
+        $data = $request->data;
+
+        $isValid = $this->validateAuthenticationData($adapterType, $data);
+
+        // Store the authentication result in the database (if needed)
+        $authRecord = AuthenticationRecord::create([
+            'adapter_type' => $adapterType,
+            'data' => $data,
+        ]);
+
+        // Prepare the response
+        $response = [
+            'status' => $isValid ? 'success' : 'failure',
+            'message' => $isValid ? 'Authentication successful' : 'Authentication failed',
+            'data' => $authRecord, // Return the stored record if needed
+        ];
+
+        // Return the response
+        return response()->json($response);
+    }
+
+    private function validateAuthenticationData(string $adapterType, string $data)
+    {
+        switch ($adapterType) {
+            case 'QR':
+                return $this->validateQR($data);
+            case 'NFC':
+                return $this->validateNFC($data);
+            case 'Face':
+                return $this->validateFace($data);
+            case 'Fingerprint':
+                return $this->validateFingerprint($data);
+            default:
+                return false;
+        }
+    }
+
+    private function validateQR($data)
+    {
+        return $data === 'expected_qr_code';
+    }
+
+    private function validateNFC($data)
+    {
+        return $data === 'expected_nfc_data';
+    }
+
+    private function validateFace($data)
+    {
+        return $data === 'expected_face_data';
+    }
+
+    private function validateFingerprint($data)
+    {
+        return $data === 'expected_fingerprint_data';
+    }
+
+
 }

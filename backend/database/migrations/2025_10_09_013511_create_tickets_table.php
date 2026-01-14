@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('sequence');
             $table->string('device_id')->nullable();
             $table->bigInteger('service_id')->nullable();
+            $table->bigInteger('customer_id')->nullable();;
             $table->enum('status', [
                 'waiting',
                 'called',

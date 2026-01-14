@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\Device;
+use App\Models\Customer;
+
 use App\Models\Ticket;
 use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
+use App\Http\Requests\Ticket\StoreTicketRequest;
+use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
@@ -35,7 +39,7 @@ class TicketController extends Controller
         }, function ($q){
             $q -> orderBy('id','desc');
         })
-        ->with('deviceWithTrashed','serviceWithTrashed')
+        ->with('deviceWithTrashed','serviceWithTrashed','customer')
         ->paginate(8);
 
         $startOfDay = Carbon::today()->startOfDay();
@@ -72,35 +76,44 @@ class TicketController extends Controller
         ]);
     }
 
-    public function store($id){
+    public function store(StoreTicketRequest $request, $id){
         $service = Service::with('devices')->findOrFail($id);
 
         $startOfDay = Carbon::today()->startOfDay();
         $endOfDay = Carbon::today()->endOfDay();     
 
-        $latestTicket = Ticket::where('ticket_number', 'like', $service->queue_number.'%')  
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->orderBy('sequence', 'desc')   
-            ->limit(1)
-            ->first();
-
-        if (!$latestTicket) {
-            $ticketSequence = 1;
-        } else {
-            $ticketSequence = ($latestTicket->sequence) + 1;
-        }
-        
-        $formattedSequence = str_pad($ticketSequence, 3, '0', STR_PAD_LEFT);
-        $ticketNumber = "{$service->queue_number}{$formattedSequence}";
-
+        DB::beginTransaction();
         try {
+            $data = $request->customerData();
+            $customer = null;
+            $customer = Customer::updateOrCreate(
+                    ['cccd' => $data['cccd']],
+                        $data
+                    );
+            $latestTicket = Ticket::where('ticket_number', 'like', $service->queue_number.'%')  
+                ->whereBetween('created_at', [$startOfDay, $endOfDay])
+                ->orderBy('sequence', 'desc')   
+                ->limit(1)
+                ->first();
+
+            if (!$latestTicket) {
+                $ticketSequence = 1;
+            } else {
+                $ticketSequence = ($latestTicket->sequence) + 1;
+            }
+            
+            $formattedSequence = str_pad($ticketSequence, 3, '0', STR_PAD_LEFT);
+            $ticketNumber = "{$service->queue_number}{$formattedSequence}";
+
             $ticket = new Ticket();
             $ticket->ticket_number = $ticketNumber;
             $ticket->sequence = $ticketSequence;
             $ticket->service_id = $service->id;
+            $ticket->customer_id = $customer->id;
             $ticket->updated_at = null;
             $ticket->save();
 
+            DB::commit();
             return response()->json([
                 'status'=>true,
                 'message'=>"Lấy số thành công: ". $ticketNumber,
@@ -108,6 +121,7 @@ class TicketController extends Controller
             ]);
         }
         catch(\Throwable $e){
+            DB::rollBack();
             \Log::error('Failed to store ticket', ['error' => $e->getMessage()]);
             activity()
                 ->useLog('ticket')    
@@ -123,7 +137,6 @@ class TicketController extends Controller
             ]);
         }
     }
-
 
     public function export(Request $request)
     {

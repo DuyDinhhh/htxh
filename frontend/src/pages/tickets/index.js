@@ -170,7 +170,7 @@ const TicketManagement = () => {
       };
 
       const response = await TicketService.index(page, params);
-      // console.log("Ticket: ", response);
+      console.log("Ticket: ", response);
       const data = response.ticket;
       const items = data?.data || data || [];
 
@@ -520,6 +520,9 @@ const TicketManagement = () => {
                   <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
                     Dịch vụ
                   </th>
+                  <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
+                    Khach hang
+                  </th>
                   <th className="text-md text-center font-semibold text-gray-500 pb-3 px-4">
                     Trạng thái
                   </th>
@@ -558,6 +561,9 @@ const TicketManagement = () => {
                       </td>
                       <td className="p-4 text-center text-sm font-semibold text-gray-800 max-w-[420px]">
                         {item.service_with_trashed?.name || "-"}
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">
+                        {item.customer?.full_name}
                       </td>
                       <td className="p-4 text-center">
                         <StatusBadge status={item.status} />

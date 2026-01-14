@@ -18,6 +18,11 @@ class Ticket extends Model
         return $this->belongsTo(Device::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id', 'id');
+    }
+
     public function service()
     {
         return $this->belongsTo(Service::class);

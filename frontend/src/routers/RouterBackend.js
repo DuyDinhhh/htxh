@@ -4,23 +4,12 @@ import NotFound from "../pages/NotFound";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/users/login";
 import Register from "../pages/users/register";
-import { Navigate } from "react-router-dom";
-import { isAuthenticated } from "../services/authService";
-
-import User from "../pages/users";
-import Role from "../pages/users/roles";
-
-import CreateUser from "../pages/users/create";
+// import { Navigate } from "react-router-dom";
+// import { isAuthenticated } from "../services/authService";
 
 import Device from "../pages/devices";
-import DeviceConfigurations from "../pages/device_configurations";
-
-import CreateDeviceConfiguration from "../pages/device_configurations/create";
 import EditDevice from "../pages/devices/edit";
 
-import EditDeviceConfiguration from "../pages/device_configurations/edit";
-import ShowDeviceConfiguration from "../pages/device_configurations/show";
-import ShowDeploymentLog from "../pages/deployment_logs/show";
 // import ShowLog from "../pages/logs/show";
 import ServiceManagement from "../pages/services";
 import ServiceCreate from "../pages/services/create";
@@ -36,9 +25,9 @@ import ButtonConfig from "../pages/config/buttonEdit";
 import QRCTicketGenerator from "../pages/tickets-qr/qr";
 import TicketCreateQR from "../pages/tickets-qr/create-qr";
 
-const ProtectedRoute = ({ children }) => {
-  return isAuthenticated() ? children : <Navigate to="/login" />;
-};
+// const ProtectedRoute = ({ children }) => {
+//   return isAuthenticated() ? children : <Navigate to="/login" />;
+// };
 
 const RouterBackend = [
   { path: "/login", element: <Login /> },

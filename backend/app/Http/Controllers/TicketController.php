@@ -76,7 +76,7 @@ class TicketController extends Controller
         ]);
     }
 
-    public function store(StoreTicketRequest $request, $id){
+    public function storeAuth(StoreTicketRequest $request, $id){
         $service = Service::with('devices')->findOrFail($id);
 
         $startOfDay = Carbon::today()->startOfDay();
@@ -117,7 +117,65 @@ class TicketController extends Controller
             return response()->json([
                 'status'=>true,
                 'message'=>"Lấy số thành công: ". $ticketNumber,
-                'ticket'=>$ticket
+                'ticket'=>$ticket,
+                'service'=> $service->name
+
+            ]);
+        }
+        catch(\Throwable $e){
+            DB::rollBack();
+            \Log::error('Failed to store ticket', ['error' => $e->getMessage()]);
+            activity()
+                ->useLog('ticket')    
+                ->event('error')  
+                ->withProperties([
+                    'message' => $e->getMessage(),
+                ])
+                ->log('Failed to store ticket');
+                
+            return response()->json([
+                'status'=>false,
+                'message'=> $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function store($id){
+        $service = Service::with('devices')->findOrFail($id);
+
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();     
+        DB::beginTransaction();
+        try {
+            $latestTicket = Ticket::where('ticket_number', 'like', $service->queue_number.'%')  
+                ->whereBetween('created_at', [$startOfDay, $endOfDay])
+                ->orderBy('sequence', 'desc')   
+                ->limit(1)
+                ->first();
+
+            if (!$latestTicket) {
+                $ticketSequence = 1;
+            } else {
+                $ticketSequence = ($latestTicket->sequence) + 1;
+            }
+            
+            $formattedSequence = str_pad($ticketSequence, 3, '0', STR_PAD_LEFT);
+            $ticketNumber = "{$service->queue_number}{$formattedSequence}";
+
+      
+            $ticket = new Ticket();
+            $ticket->ticket_number = $ticketNumber;
+            $ticket->sequence = $ticketSequence;
+            $ticket->service_id = $service->id;
+            $ticket->updated_at = null;
+            $ticket->save();
+            DB::commit();
+
+            return response()->json([
+                'status'=>true,
+                'message'=>"Lấy số thành công: ". $ticketNumber,
+                'ticket'=>$ticket,
+                'service'=> $service->name
             ]);
         }
         catch(\Throwable $e){

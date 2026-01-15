@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import ServiceService from "../../services/serviceService";
 import TicketService from "../../services/ticketService";
 import ConfigService from "../../services/configService";
@@ -12,14 +12,6 @@ import Footer from "../../components/kiosk/footer";
 const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
 const DEFAULT_BUTTON_BG = "#8B4513";
-
-const chunkArray = (array, size) => {
-  const result = [];
-  for (let i = 0; i < array.length; i += size) {
-    result.push(array.slice(i, i + size));
-  }
-  return result;
-};
 
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
@@ -39,47 +31,54 @@ const TicketCreateQR = () => {
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [registering, setRegistering] = useState({});
-  const [error, setError] = useState(null);
+  // const [error, setError] = useState(null);
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
+  const [isValidating, setIsValidating] = useState(true);
+  const [isValid, setIsValid] = useState(false);
 
-  // const [number, setNumber] = useState(null);
   const [number, setNumber] = useState(() => {
     return sessionStorage.getItem("ticket_number") || null;
   });
+  const [serviceName, setServiceName] = useState(false);
+
   const navigate = useNavigate();
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const id = queryParams.get("id");
+  const token = queryParams.get("token");
 
+  console.log(token);
   useEffect(() => {
-    if (!id) {
-      setError("Invalid QR code, missing ID");
+    if (!token) {
       navigate("/error");
       return;
     }
 
     const validateUrl = async () => {
       try {
-        const response = await TicketService.validateUrl(id);
+        const response = await TicketService.validateUrl(token);
         if (response.status === true) {
+          setIsValid(true);
         } else {
-          setError("QR code expired or invalid.");
           if (!number) {
             navigate("/notfound");
+          } else {
+            setIsValid(true);
           }
         }
       } catch (err) {
-        setError("Failed to validate QR code");
-        console.error("Error during validation:", err);
         navigate("/notfound");
+      } finally {
+        setIsValidating(false);
       }
     };
     validateUrl();
-  }, [id, navigate]);
+  }, [token, navigate, number]);
 
   useEffect(() => {
+    if (!isValid || isValidating) return;
+
     const fetchServices = async () => {
       setLoadingServices(true);
       try {
@@ -99,9 +98,11 @@ const TicketCreateQR = () => {
       }
     };
     fetchServices();
-  }, []);
+  }, [isValid, isValidating]);
 
   useEffect(() => {
+    if (!isValid || isValidating) return;
+
     let mounted = true;
     const loadConfig = async () => {
       setLoadingConfig(true);
@@ -165,16 +166,20 @@ const TicketCreateQR = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isValid, isValidating]);
 
-  const debouncedRegister = useCallback(
-    debounce(
+  // Use useRef to store the debounced function
+  const debouncedRegisterRef = useRef(null);
+
+  useEffect(() => {
+    debouncedRegisterRef.current = debounce(
       async (id) => {
         setRegistering((prev) => ({ ...prev, [id]: true }));
         try {
           const response = await TicketService.register(id);
           if (response.status) {
             setNumber(response.ticket.ticket_number);
+            setServiceName(response.service);
             sessionStorage.setItem(
               "ticket_number",
               response.ticket.ticket_number
@@ -191,17 +196,18 @@ const TicketCreateQR = () => {
       },
       700,
       { leading: true, trailing: false }
-    ),
-    []
-  );
+    );
 
-  useEffect(() => {
     return () => {
-      debouncedRegister.cancel?.();
+      debouncedRegisterRef.current?.cancel?.();
     };
-  }, [debouncedRegister]);
+  }, []);
 
-  const handleRegister = (id) => debouncedRegister(id);
+  const handleRegister = useCallback((id) => {
+    if (debouncedRegisterRef.current) {
+      debouncedRegisterRef.current(id);
+    }
+  }, []);
 
   const headerBg = config?.bg_top_color ?? DEFAULT_BG;
   const headerTextColor = config?.text_top_color ?? DEFAULT_HEADER_TEXT_COLOR;
@@ -211,6 +217,16 @@ const TicketCreateQR = () => {
   const logoSrc = config?.photoUrl ?? "/images/agribank-logo.png";
 
   const isLoadingAll = loadingServices || loadingConfig;
+
+  // Don't render anything until validation is complete
+  if (isValidating) {
+    return null;
+  }
+
+  // If validation failed, navigation will happen, so don't render
+  if (!isValid) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 justify-between overflow-hidden">
@@ -225,6 +241,7 @@ const TicketCreateQR = () => {
         {number ? (
           <div className="flex flex-col items-center justify-center h-full">
             <p className="font-bold text-9xl">{number}</p>
+            <p className="font-bold text-2xl">{serviceName}</p>
           </div>
         ) : isLoadingAll ? (
           <div className="text-center text-gray-300">Đang tải...</div>

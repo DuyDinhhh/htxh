@@ -24,15 +24,12 @@ const safeColor = (val, fallback) =>
 
 const QRCTicketGenerator = () => {
   const [url, setUrl] = useState("");
-  const prefix = `${window.location.protocol}//${window.location.host}/ticket/create-qr`;
-
   const [countdown, setCountdown] = useState(30);
 
   const generateNewUrl = async () => {
     try {
       const response = await TicketService.generateNewUrl();
-      const randomSuffix = response.id;
-      setUrl(`${prefix}?id=${randomSuffix}`);
+      setUrl(response.url);
       setCountdown(30);
     } catch (err) {
       console.log(err);

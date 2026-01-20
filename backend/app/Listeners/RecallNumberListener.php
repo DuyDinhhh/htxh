@@ -25,9 +25,6 @@ class RecallNumberListener
     {
         try {
             $data = $event -> data;
-            $prefix = env('APP_ENV', "");
-            $clientId = 'publish-' . $data['device_id'].$prefix ;
-            config(['mqtt-client.connections.default.client_id' => $clientId]);
             
             $startOfDay = Carbon::today()->startOfDay();
             $endOfDay = Carbon::today()->endOfDay();   

@@ -12,7 +12,7 @@ class QRCodeController extends Controller
     public function generateNewQR()
     {
         $token = Str::random(20);
-        $baseUrl = 'http://10.10.1.59:3000/ticket/create-qr';
+        $baseUrl = 'http://10.10.1.21/ticket/create-qr';
         Cache::put($token, 'valid', self::QR_VALIDITY_DURATION);
         return response()->json([
             'url' => $baseUrl . '?token=' . $token

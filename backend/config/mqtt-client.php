@@ -120,7 +120,7 @@ return [
             'host' => env('MQTT_HOST'),
             'port' => env('MQTT_PORT', 1883),
             'protocol' => MqttClient::MQTT_3_1,
-            'client_id' => env('MQTT_PUB_CLIENT_ID', 'laravel-publisher'), // different ID!
+            'client_id' => env('MQTT_PUB_CLIENT_ID'), // different ID!
             'use_clean_session' => true,
             'enable_logging' => env('MQTT_ENABLE_LOGGING', true),
             'log_channel' => env('MQTT_LOG_CHANNEL'),

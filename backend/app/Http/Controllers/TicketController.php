@@ -195,6 +195,20 @@ class TicketController extends Controller
             ]);
         }
     }
+    public function show($id){
+        $ticket = Ticket::with('device','service','customer')->findOrFail($id);
+        if(!$ticket){
+            return response()->json([
+                'status' => false,
+                'message' => "Ticket not found!"
+            ]);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => "Ticket retrieved successfully.",
+            'ticket' => $ticket
+        ]);
+    }
 
     public function export(Request $request)
     {

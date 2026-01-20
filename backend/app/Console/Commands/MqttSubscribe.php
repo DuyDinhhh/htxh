@@ -22,11 +22,7 @@ class MqttSubscribe extends Command
     public function handle()
     {
         $topic = $this->argument('topic');
-        $currentTime = Carbon::now()->toDateTimeString();
-        $prefix = env('APP_ENV', "");
-        $clientId = $prefix. 'subscribe-' . $topic. $currentTime ;
 
-        config(['mqtt-client.connections.default.client_id' => $clientId]);
         if($topic === 'requestnumber'){
             $devices = Device::select('id', 'name')->get();
             $services = Service::whereHas('devices')

@@ -10,16 +10,20 @@ class QRCodeController extends Controller
 {
     const QR_VALIDITY_DURATION = 30;
     public function generateNewQR()
-    { 
-        $randomId = Str::random(10);  
-        Cache::put($randomId, 'valid', self::QR_VALIDITY_DURATION); 
-        return response()->json(['id' => $randomId]);
+    {
+        $token = Str::random(20);
+        $baseUrl = 'http://10.10.1.21/ticket/create-qr';
+        Cache::put($token, 'valid', self::QR_VALIDITY_DURATION);
+        return response()->json([
+            'url' => $baseUrl . '?token=' . $token
+        ]);
     }
 
     public function validateQR(Request $request)
     {
-        $id = $request->query('id'); 
-        if (Cache::has($id)) { 
+        $token = $request->query('token');
+        if (Cache::has($token)) { 
+            // Cache::forget($token);
             return response()->json([
                 'status' => true,
             ]);
@@ -29,4 +33,17 @@ class QRCodeController extends Controller
             ]);  
         }
     }
+
+        // public function validateQR(Request $request)
+    // {
+
+    //     if (!$token) {
+    //         return redirect('http://10.10.1.59:3000/qr-invalid');
+    //     }
+
+    //     if (!Cache::has($token)) {
+    //         return redirect('http://10.10.1.59:3000/qr-expired');
+    //     }
+    //     return redirect('http://10.10.1.59:3000/ticket/create-qr');
+    // }
 }

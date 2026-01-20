@@ -9,6 +9,7 @@ const TicketService = {
       },
     });
   },
+
   register: async (id) => {
     return await httpAxios.post(`ticket/${id}`);
   },
@@ -28,8 +29,8 @@ const TicketService = {
     return await httpAxios.get("ticket/generate-new-qr");
   },
 
-  validateUrl: async (id) => {
-    return await httpAxios.get(`/ticket/validate-qr?id=${id}`);
+  validateUrl: async (token) => {
+    return await httpAxios.get(`/ticket/validate-qr?token=${token}`);
   },
 };
 

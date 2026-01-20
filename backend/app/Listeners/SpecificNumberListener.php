@@ -25,9 +25,6 @@ class SpecificNumberListener
             $data = $event -> data;
             $deviceId = $data['device_id'] ?? null;
             $number = $data['number'] ?? null;
-            $prefix = env('APP_ENV', "");
-            $clientId = 'publish-' . $data['device_id'].$prefix ;
-            config(['mqtt-client.connections.default.client_id' => $clientId]);
             
             $startOfDay = Carbon::today()->startOfDay();
             $endOfDay = Carbon::today()->endOfDay();   

@@ -48,7 +48,7 @@ class MqttSubscribe extends Command
             if($topic === 'feedback'){
                 event(new \App\Events\FeedbackReceived($data));
             }elseif ($topic === 'staff/status'){
-                event(new \App\Events\DeviceStatusReceived($data)); 
+                event(new \App\Events\StaffStatusReceived($data)); 
             }elseif ($topic === 'devicelogin'){
                 event(new \App\Events\DeviceLogin($data)); 
             }elseif ($topic === 'device/status'){

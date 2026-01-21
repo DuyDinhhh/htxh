@@ -24,7 +24,10 @@ import DeploymentLog from "../pages/logs/deployment";
 import ButtonConfig from "../pages/config/buttonEdit";
 import QRCTicketGenerator from "../pages/tickets-qr/qr";
 import TicketCreateQR from "../pages/tickets-qr/create-qr";
-
+import StaffManagement from "../pages/staff";
+import EditStaff from "../pages/staff/edit";
+import AddStaff from "../pages/staff/create";
+import StaffFeedbackDetail from "../pages/feedbacks/detail";
 // const ProtectedRoute = ({ children }) => {
 //   return isAuthenticated() ? children : <Navigate to="/login" />;
 // };
@@ -65,6 +68,11 @@ const RouterBackend = [
       { path: "/tickets", element: <TicketManagement /> },
       { path: "/ticket/create", element: <TicketCreate /> },
       // --- Deployments Logs ---
+
+      { path: "/staffs", element: <StaffManagement /> },
+      { path: "/staff/edit/:id", element: <EditStaff /> },
+      { path: "/staff/create", element: <AddStaff /> },
+      { path: "/staff/show/:id", element: <StaffFeedbackDetail /> },
 
       { path: "/services", element: <ServiceManagement /> },
       { path: "/service/create", element: <ServiceCreate /> },

@@ -34,7 +34,7 @@ class QRCodeController extends Controller
         }
     }
 
-        // public function validateQR(Request $request)
+    // public function validateQR(Request $request)
     // {
 
     //     if (!$token) {

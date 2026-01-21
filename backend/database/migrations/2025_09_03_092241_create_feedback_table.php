@@ -13,6 +13,7 @@ return new class extends Migration
         Schema::create('feedback', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('device_id')->nullable();
+            $table->string('staff_id')->nullable();
             $table->integer('service_id')->nullable();
             $table->integer('ticket_id')->nullable();;
             $table->integer('value');

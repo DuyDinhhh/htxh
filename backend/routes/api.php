@@ -12,6 +12,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ButtonConfigController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StaffController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,12 +33,23 @@ Route::get('/service/activelist',[ServiceController::class,'activelist']);
 
 Route::middleware('jwt')->group(function () {
 
+    Route::prefix('/staff')->group(function(){
+        Route::get('/',[StaffController::class,'index']);
+        Route::get('/list',[StaffController::class,'list']);
+        Route::get('/{id}',[StaffController::class,'show']);
+        Route::post('/',[StaffController::class,'store']);
+        Route::put('/{id}',[StaffController::class,'update']);
+        Route::delete('/{id}',[StaffController::class,'delete']);
+    });
+
     Route::get('/columnChart',[DashboardController::class,'columnChart']);
     Route::get('/circleChart',[DashboardController::class,'circleChart']);
     Route::get('/feedbackChart',[DashboardController::class,'feedbackChart']);
             
     Route::get('/feedback',[FeedbackController::class,'index']);
     Route::get('/feedback/export', [FeedbackController::class, 'export']);
+    Route::get('/feedback/monthly-stats', [FeedbackController::class, 'getMonthlyStats']);
+
 
     Route::prefix('service')->group(function(){
         Route::get('/',[ServiceController::class,'index']);

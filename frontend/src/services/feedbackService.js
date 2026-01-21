@@ -19,6 +19,14 @@ const FeedbackService = {
       headers: { Authorization: `Bearer ${token}` },
     });
   },
+  getMonthlyStats: async (staffId, month) => {
+    return await httpAxios.get(`feedback/monthly-stats`, {
+      params: {
+        staff_id: staffId,
+        month: month,
+      },
+    });
+  },
 };
 
 export default FeedbackService;

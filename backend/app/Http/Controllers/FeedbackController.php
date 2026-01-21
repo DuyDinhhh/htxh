@@ -19,6 +19,9 @@ class FeedbackController extends Controller
         ->when($request->filled('device_id'), function ($q) use ($request) {
             $q->where('device_id',$request -> device_id);
         })
+        ->when($request->filled('staff_id'), function ($q) use ($request) {
+            $q->where('staff_id', $request->staff_id);
+        })
         ->when($request->filled('value'), function ($q) use ($request) {
             $q->where('value',$request -> value);
         })
@@ -33,7 +36,7 @@ class FeedbackController extends Controller
         }, function ($q) {
             $q->orderBy('id', 'desc');
         })
-        ->with('ticket.deviceWithTrashed','ticket.serviceWithTrashed')
+        ->with('staffWithTrashed', 'ticket.deviceWithTrashed','ticket.serviceWithTrashed')
         ->paginate(8);
 
         $startOfDay = Carbon::today()->startOfDay();
@@ -85,6 +88,9 @@ class FeedbackController extends Controller
             ->when($request->filled('device_id'), function ($q) use ($request) {
                 $q->where('device_id', $request->device_id);
             })
+            ->when($request->filled('staff_id'), function ($q) use ($request) {
+                $q->where('staff_id', $request->staff_id);
+            })
             ->when($request->filled('value'), function ($q) use ($request) {
                 $q->where('value', $request->value);
             })
@@ -99,7 +105,7 @@ class FeedbackController extends Controller
             }, function ($q) {
                 $q->orderBy('id', 'desc');
             })
-            ->with('ticket.deviceWithTrashed', 'ticket.serviceWithTrashed')
+            ->with('staffWithTrashed','ticket.deviceWithTrashed', 'ticket.serviceWithTrashed')
             ->get();
 
         // Check size limit
@@ -109,6 +115,7 @@ class FeedbackController extends Controller
 
         $feedback_array = [
             [
+                'Nhân viên',
                 'Thiết bị',
                 'Dịch vụ',
                 'Đánh giá',
@@ -119,7 +126,9 @@ class FeedbackController extends Controller
 
         foreach ($feedbacks as $feedback) {
             $ticket = optional($feedback->ticket); 
+            $staff = optional($feedback->staffWithTrashed); 
             $feedback_array[] = [
+                optional($staff)->name ?? $feedback->staff_id,
                 optional($ticket->deviceWithTrashed)->name ?? $feedback->device_id,
                 optional($ticket->serviceWithTrashed)->name ?? $feedback->service_id,
                 $feedback->value === 1 ? "Không hài lòng" : ($feedback->value === 2 ? "Bình thường" : ($feedback->value === 3 ? "Hài lòng" : "Rất hài lòng")),
@@ -153,6 +162,94 @@ class FeedbackController extends Controller
         } catch (\Exception $e) {
             \Log::error($e);
             return response()->json(['error' => 'Failed to export Excel.'], 500);
+        }
+    }
+
+    public function getMonthlyStats(Request $request)
+    {
+        $month = $request->input('month'); // Format: "2025-01"
+        $staffId = $request->input('staff_id');
+
+        if (!$month) {
+            return response()->json(['error' => 'Month parameter is required'], 400);
+        }
+
+        try {
+            $startOfMonth = Carbon::parse($month .  '-01')->startOfMonth();
+            $endOfMonth = Carbon:: parse($month . '-01')->endOfMonth();
+
+            // Previous month
+            $previousMonthStart = (clone $startOfMonth)->subMonth()->startOfMonth();
+            $previousMonthEnd = (clone $startOfMonth)->subMonth()->endOfMonth();
+
+            // Monthly query (selected month)
+            $monthlyQuery = Feedback::whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+            
+            // Previous month query
+            $previousQuery = Feedback::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd]);
+            
+            // All-time query
+            $allTimeQuery = Feedback::query();
+
+            if ($staffId) {
+                $monthlyQuery->where('staff_id', $staffId);
+                $previousQuery->where('staff_id', $staffId);
+                $allTimeQuery->where('staff_id', $staffId);
+            }
+
+            // Monthly stats
+            $verySatisfiedMonth = (clone $monthlyQuery)->where('value', 4)->count();
+            $satisfiedMonth = (clone $monthlyQuery)->where('value', 3)->count();
+            $negativeMonth = (clone $monthlyQuery)->where('value', 1)->count();
+            $neutralMonth = (clone $monthlyQuery)->where('value', 2)->count();
+            $totalMonth = $verySatisfiedMonth + $satisfiedMonth + $negativeMonth + $neutralMonth;
+
+            // Previous month stats
+            $verySatisfiedPrev = (clone $previousQuery)->where('value', 4)->count();
+            $satisfiedPrev = (clone $previousQuery)->where('value', 3)->count();
+            $negativePrev = (clone $previousQuery)->where('value', 1)->count();
+            $neutralPrev = (clone $previousQuery)->where('value', 2)->count();
+
+            // All-time stats
+            $verySatisfiedAll = (clone $allTimeQuery)->where('value', 4)->count();
+            $satisfiedAll = (clone $allTimeQuery)->where('value', 3)->count();
+            $negativeAll = (clone $allTimeQuery)->where('value', 1)->count();
+            $neutralAll = (clone $allTimeQuery)->where('value', 2)->count();
+            $totalAll = $verySatisfiedAll + $satisfiedAll + $negativeAll + $neutralAll;
+
+            // Calculate trends
+            $calculateTrend = function($current, $previous) {
+                if ($previous == 0) {
+                    return $current > 0 ? 100 : 0;
+                }
+                return round((($current - $previous) / $previous) * 100, 1);
+            };
+
+            return response()->json([
+                'status' => true,
+                'month' => $month,
+                // Monthly stats
+                'total' => $totalMonth,
+                'very_satisfied' => $verySatisfiedMonth,
+                'satisfied' => $satisfiedMonth,
+                'negative' => $negativeMonth,
+                'neutral' => $neutralMonth,
+                // All-time stats
+                'total_all_time' => $totalAll,
+                'very_satisfied_all_time' => $verySatisfiedAll,
+                'satisfied_all_time' => $satisfiedAll,
+                'negative_all_time' => $negativeAll,
+                'neutral_all_time' => $neutralAll,
+                // Trends
+                'trends' => [
+                    'very_satisfied' => $calculateTrend($verySatisfiedMonth, $verySatisfiedPrev),
+                    'satisfied' => $calculateTrend($satisfiedMonth, $satisfiedPrev),
+                    'neutral' => $calculateTrend($neutralMonth, $neutralPrev),
+                    'negative' => $calculateTrend($negativeMonth, $negativePrev),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid month format'], 400);
         }
     }
 }

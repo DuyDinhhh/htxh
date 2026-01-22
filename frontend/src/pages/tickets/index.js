@@ -521,7 +521,7 @@ const TicketManagement = () => {
                     Dịch vụ
                   </th>
                   <th className="text-center text-md font-semibold text-gray-500 pb-3 px-4">
-                    Khach hang
+                    Khách hàng
                   </th>
                   <th className="text-md text-center font-semibold text-gray-500 pb-3 px-4">
                     Trạng thái

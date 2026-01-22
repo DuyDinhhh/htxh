@@ -8,6 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Feedback;
 use App\Models\Device;
 use App\Models\Ticket;
+use App\Models\Staff;
 use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
 
@@ -33,6 +34,10 @@ class SaveFeedbackListener
             if (!$device) {
                 throw new \Exception("Device not found by MAC: " . $data['device_id']);
             }
+            $staff = Staff::findOrFail($data['staff_id']);
+            if (!$staff) {
+                throw new \Exception("Staff not found: " . $data['staff_id']);
+            }
 
             $startOfDay = Carbon::today()->startOfDay();
             $endOfDay = Carbon::today()->endOfDay();   
@@ -48,6 +53,8 @@ class SaveFeedbackListener
             $feedback->device_id   = $deviceId;
             $feedback->ticket_id = $ticketId;
             $feedback->service_id = $serviceId;
+            $feedback->staff_id = $data['staff_id'];
+
             // $feedback->user_id     = $data['user_id'] ?? 1;
             $feedback->value       = $data['value'] ?? 0;
             $feedback->save();

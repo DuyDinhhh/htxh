@@ -17,6 +17,14 @@ const FeedbackService = {
         responseType: "blob",
       });
   },
+  getMonthlyStats: async (staffId, month) => {
+    return await httpAxios.get(`feedback/monthly-stats`, {
+      params: {
+        staff_id: staffId,
+        month: month,
+      },
+    });
+  },
 };
 
 export default FeedbackService;

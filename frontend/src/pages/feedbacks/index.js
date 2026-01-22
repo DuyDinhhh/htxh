@@ -4,6 +4,7 @@ import FeedbackService from "../../services/feedbackService";
 import ServiceService from "../../services/serviceService";
 import { toast } from "react-toastify";
 import DeviceService from "../../services/deviceService";
+import StaffService from "../../services/staffService";
 
 function formatDate(dt) {
   if (!dt) return "";
@@ -69,6 +70,7 @@ const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
 
 const FeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
+  const [staffs, setStaffs] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState([]);
@@ -83,6 +85,7 @@ const FeedbackManagement = () => {
     neutral: 0,
     neutraltoday: 0,
   });
+
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -91,6 +94,7 @@ const FeedbackManagement = () => {
     from: 0,
     to: 0,
   });
+  const [staffId, setStaffId] = useState("");
 
   // filters
   const [serviceId, setServiceId] = useState("");
@@ -101,6 +105,15 @@ const FeedbackManagement = () => {
   const [sort, setSort] = useState("desc");
   const [exporting, setExporting] = useState(false);
 
+  const fetchStaffs = async () => {
+    try {
+      const res = await StaffService.list();
+      setStaffs(res.data?.staff || res.staff || []);
+    } catch (err) {
+      setStaffs([]);
+      toast.error("Lỗi khi tải danh sách nhân viên", { autoClose: 500 });
+    }
+  };
   const fetchServices = async () => {
     try {
       const res = await ServiceService.list();
@@ -124,6 +137,7 @@ const FeedbackManagement = () => {
     setLoading(true);
     try {
       const params = {
+        staff_id: staffId,
         device_id: deviceId,
         service_id: serviceId,
         date_from: dateFrom,
@@ -176,13 +190,13 @@ const FeedbackManagement = () => {
   useEffect(() => {
     fetchServices();
     fetchDevices();
-
+    fetchStaffs();
     fetchFeedbacks(1);
   }, []);
 
   useEffect(() => {
     fetchFeedbacks(1);
-  }, [deviceId, serviceId, dateFrom, dateTo, sort, value]);
+  }, [staffId, deviceId, serviceId, dateFrom, dateTo, sort, value]);
 
   const handlePageChange = (newPage) => {
     if (
@@ -214,6 +228,7 @@ const FeedbackManagement = () => {
     setExporting(true);
     try {
       const params = {
+        staff_id: staffId,
         device_id: deviceId,
         service_id: serviceId,
         date_from: dateFrom,
@@ -363,6 +378,19 @@ const FeedbackManagement = () => {
         <div className="p-6 border-b">
           <div className="flex flex-wrap gap-3 items-center">
             <select
+              className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 w-[200px]"
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
+            >
+              <option value="">-- Tất cả nhân viên --</option>
+              {staffs.map((staff) => (
+                <option key={staff.id} value={staff.id}>
+                  {staff.name} {staff.deleted_at ? "(Đã xoá)" : ""}
+                </option>
+              ))}
+            </select>
+
+            <select
               className="px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 w-[180px]"
               value={serviceId}
               onChange={(e) => setServiceId(e.target.value)}
@@ -432,6 +460,9 @@ const FeedbackManagement = () => {
               <thead className="">
                 <tr className="border-b">
                   <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
+                    Nhân viên
+                  </th>
+                  <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
                     Thiết bị
                   </th>
                   <th className="text-left text-md font-semibold text-gray-500 pb-3 px-4">
@@ -467,6 +498,9 @@ const FeedbackManagement = () => {
                       key={item.id}
                       className="border-b last:border-b-0 hover:bg-red-50 transition-colors duration-150"
                     >
+                      <td className="p-4 text-sm text-gray-600">
+                        {item?.staff_with_trashed?.name || "-"}
+                      </td>
                       <td className="p-4 text-sm text-gray-600">
                         {item.ticket?.device_with_trashed?.name || "-"}
                       </td>

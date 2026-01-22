@@ -1,5 +1,7 @@
 FROM php:8.4-fpm-alpine
 
+COPY ./php-fpm-www.conf /usr/local/etc/php-fpm.d/www.conf
+ 
 RUN apk add --no-cache \
     libpng \
     libjpeg-turbo \

@@ -4,17 +4,14 @@ services:
   db:
     image: mysql:8
     restart: always
-    environment:
-      MYSQL_DATABASE: user-feedback-app
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOTPASSWORD}
+    env_file:
+      - .env
     volumes:
       - dbdata:/var/lib/mysql
     ports:
       - 13306:3306
     networks:
-      - webnet    
+      - webnet
 
   frontend:
     build:
@@ -27,20 +24,15 @@ services:
       - backend
     ports:
       - "80:80"
- 
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     working_dir: /var/www
     restart: unless-stopped
-    environment:
-      DB_HOST: db
-      DB_DATABASE: user-feedback-app
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      APP_ENV: ${APP_ENV}
+    env_file:
+      - .env
     depends_on:
       - db
     volumes:

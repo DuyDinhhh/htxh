@@ -9,7 +9,7 @@ class Feedback extends Model {
     use HasFactory,SoftDeletes;
     protected $primaryKey = 'id';
     public $incrementing = true;
-    protected $fillable = ['device_id', 'service_id', 'user_id', 'value', 'created_by', 'updated_by'];
+    protected $fillable = ['staff_id', 'device_id', 'service_id', 'user_id', 'value', 'created_by', 'updated_by'];
 
     public function user() {
         return $this->belongsTo(User::class);
@@ -25,5 +25,15 @@ class Feedback extends Model {
 
     public function service() {
         return $this->belongsTo(Service::class);
+    }
+
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class, 'staff_id');
+    }
+
+    public function staffWithTrashed()
+    {
+        return $this->belongsTo(Staff::class, 'staff_id', 'id')->withTrashed();
     }
 }

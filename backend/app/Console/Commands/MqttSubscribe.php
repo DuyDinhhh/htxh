@@ -47,6 +47,10 @@ class MqttSubscribe extends Command
                 $this->logMqttEvent('receive', $topic, $data);}
             if($topic === 'feedback'){
                 event(new \App\Events\FeedbackReceived($data));
+            }elseif ($topic === 'staff/status'){
+                event(new \App\Events\StaffStatusReceived($data)); 
+            }elseif ($topic === 'devicelogin'){
+                event(new \App\Events\DeviceLogin($data)); 
             }elseif ($topic === 'device/status'){
                 event(new \App\Events\DeviceStatusReceived($data)); 
             }elseif ($topic === 'requestnumber'){

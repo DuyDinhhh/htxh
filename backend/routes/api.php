@@ -25,14 +25,12 @@ Route::get('/service/list',[ServiceController::class,'list']);
 
 Route::post('/ticket/{id}',[TicketController::class,'store']);
 Route::get('/ticket/detail/{id}',[TicketController::class,'show']);
-
 Route::post('/ticketAuth/{id}',[TicketController::class,'storeAuth']);
 
 Route::get('/service/activelist',[ServiceController::class,'activelist']);
 
 
 Route::middleware('jwt')->group(function () {
-
     Route::prefix('/staff')->group(function(){
         Route::get('/',[StaffController::class,'index']);
         Route::get('/list',[StaffController::class,'list']);
@@ -46,10 +44,12 @@ Route::middleware('jwt')->group(function () {
     Route::get('/circleChart',[DashboardController::class,'circleChart']);
     Route::get('/feedbackChart',[DashboardController::class,'feedbackChart']);
             
-    Route::get('/feedback',[FeedbackController::class,'index']);
-    Route::get('/feedback/export', [FeedbackController::class, 'export']);
-    Route::get('/feedback/monthly-stats', [FeedbackController::class, 'getMonthlyStats']);
 
+    Route::prefix('/feedback')->group(function(){
+        Route::get('/',[FeedbackController::class,'index']);
+        Route::get('/export', [FeedbackController::class, 'export']);
+        Route::get('/monthly-stats', [FeedbackController::class, 'getMonthlyStats']);
+    });
 
     Route::prefix('service')->group(function(){
         Route::get('/',[ServiceController::class,'index']);

@@ -319,6 +319,7 @@ This section documents MQTT topics used by the system (via the `MqttSubscribe` c
   <img src="./frontend/public/assets/img/readme/image-5.png" alt="alt text" width="48%" />
   <img src="./frontend/public/assets/img/readme/image-6.png" alt="alt text" width="48%" />
 </div>
+
 ---
 
 ## **Get Going!**

@@ -13,8 +13,6 @@ Before you begin, ensure you have the following installed:
 
 ## Step 1: Environment Configuration
 
-### Create `.env` File
-
 Create a `.env` file in the **root directory** of your project with the following configuration:
 
 ```env
@@ -149,7 +147,7 @@ exit
 
 Your application should now be running! Access it at:
 
-- **Frontend**: `http://localhost` with `user: admin password admin123` (or the configured port)
+- **Frontend**: `http://your-ip-address` (or the configured port) with `user:admin/password:admin123`
 - **Backend API**: Check your docker-compose.yml for the backend port
 
 ---

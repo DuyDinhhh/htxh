@@ -1,5 +1,7 @@
 FROM php:8.4-fpm
 
+COPY ./php-fpm-www.conf /usr/local/etc/php-fpm.d/www.conf
+
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -21,7 +23,6 @@ WORKDIR /var/www
 COPY . .
 
 COPY .env.example .env
-
   
 RUN composer install --no-interaction --prefer-dist --no-dev 
  

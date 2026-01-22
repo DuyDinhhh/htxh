@@ -24,7 +24,7 @@ Route::get('/ticket/generate-new-qr', [QRCodeController::class, 'generateNewQR']
 Route::get('/service/list',[ServiceController::class,'list']);
 
 Route::post('/ticket/{id}',[TicketController::class,'store']);
-Route::get('/ticket/{id}',[TicketController::class,'show']);
+Route::get('/ticket/detail/{id}',[TicketController::class,'show']);
 
 Route::post('/ticketAuth/{id}',[TicketController::class,'storeAuth']);
 

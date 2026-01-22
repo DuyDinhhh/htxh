@@ -1,0 +1,18 @@
+
+version: "3.7"
+services:
+  user-feedback-app-mqtt:
+    image: eclipse-mosquitto
+    container_name: user-feedback-app-mqtt
+    ports:
+      - "1884:1883" #default mqtt port
+      - "9002:9001" #default mqtt port for websockets
+    volumes:
+      - ./config:/mosquitto/config:rw
+      - ./data:/mosquitto/data:rw
+      - ./log:/mosquitto/log:rw
+    restart: unless-stopped
+networks:
+  default:
+    name: mqtt-user-feedback-app-network
+

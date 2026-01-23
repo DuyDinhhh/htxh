@@ -15,12 +15,10 @@ const FeedbackService = {
 
   // Export feedbacks as Excel file
   export: async (params = {}) => {
-    const token = localStorage.getItem("token");
-    return await axios.get("http://127.0.0.1:8000/api/feedback/export", {
-      params,
-      responseType: "blob",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    return await httpAxios.get("feedback/export", {
+        params,
+        responseType: "blob",
+      });
   },
 
   // Get monthly feedback stats for a staff

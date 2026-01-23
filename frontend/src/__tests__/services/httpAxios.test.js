@@ -19,7 +19,7 @@ describe("httpAxios Service", () => {
   });
 
   it("should have proper base URL configuration", () => {
-    const baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+    const baseURL = process.env.REACT_APP_API_URL || "http://localhost:8081";
     expect(baseURL).toBeDefined();
     expect(typeof baseURL).toBe("string");
   });

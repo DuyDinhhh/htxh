@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import ServiceService from "../../services/serviceService";
 
+// Service create page logic (form, validate, submit).
 const ServiceCreate = () => {
   const navigate = useNavigate();
 
@@ -15,17 +16,20 @@ const ServiceCreate = () => {
     color: "#8B4513",
   });
 
+  // Update form input.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Validate form fields.
   const validate = () => {
     const v = {};
     if (!form.name?.trim()) v.name = "Tên dịch vụ không được để trống";
     return v;
   };
 
+  // Submit new service to API.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -56,7 +60,7 @@ const ServiceCreate = () => {
       setErrors(
         be?.errors
           ? be.errors
-          : { general: be?.message || "Lỗi khi tạo dịch vụ." }
+          : { general: be?.message || "Lỗi khi tạo dịch vụ." },
       );
     } finally {
       setSaving(false);

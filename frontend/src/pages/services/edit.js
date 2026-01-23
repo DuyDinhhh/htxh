@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ServiceService from "../../services/serviceService";
 import { toast } from "react-toastify";
+// Validate hex color string.
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
+// Normalize #rgb to #rrggbb.
 const normalizeHex = (val = "") => {
   const v = (val || "").trim();
   if (/^#([0-9A-Fa-f]{6})$/.test(v)) return v.toLowerCase();
@@ -13,6 +15,7 @@ const normalizeHex = (val = "") => {
   }
   return v;
 };
+// Service edit page logic (load, form, validate, submit).
 const ServiceEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ const ServiceEdit = () => {
     queue_number: "",
   });
 
+  // Load service data for editing.
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -45,17 +49,20 @@ const ServiceEdit = () => {
     })();
   }, [id]);
 
+  // Update form input.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Validate form fields.
   const validate = () => {
     const v = {};
     if (!form.name?.trim()) v.name = "Tên dịch vụ không được để trống";
     return v;
   };
 
+  // Submit updated service to API.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -85,12 +92,13 @@ const ServiceEdit = () => {
       setErrors(
         be?.errors
           ? be.errors
-          : { general: be?.message || "Lỗi khi cập nhật dịch vụ." }
+          : { general: be?.message || "Lỗi khi cập nhật dịch vụ." },
       );
     } finally {
       setSaving(false);
     }
   };
+  // Handle manual color text input and normalize/validate.
   const handleColorTextChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));

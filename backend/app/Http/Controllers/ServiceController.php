@@ -10,6 +10,7 @@ use PhpMqtt\Client\Facades\MQTT;
 
 class ServiceController extends Controller
 {
+    //get list of services
     public function index(){
         $service = Service::with('devices')->paginate(8);
         if(!$service){
@@ -25,6 +26,7 @@ class ServiceController extends Controller
         ]);
     }
 
+    //get list of services include deleted or not, main goal is use for drop down filter
     public function list(){
         $service = Service::withTrashed()
         ->with('devices')->get();
@@ -40,7 +42,8 @@ class ServiceController extends Controller
             'services'=>$service
         ]);
     }
-
+ 
+    // return list of service have assigned to a device, it show in kiosk get number
     public function activelist(){
         $service = Service::has('devices')->get();
         if(!$service){
@@ -56,7 +59,7 @@ class ServiceController extends Controller
         ]);
     }
     
-
+    // show the service detail
     public function show($id){
         $service = Service::findOrFail($id);
 
@@ -73,6 +76,7 @@ class ServiceController extends Controller
     }
 
 
+    // create a service, allow input queue_number, it is the number before each service like 1 -> 1001,1002, 2 -> 2001, 2002
     public function store(StoreServiceRequest $request){
 
         $service = new Service();
@@ -88,6 +92,7 @@ class ServiceController extends Controller
         ]);
     }
 
+    //update the service detail
     public function update(UpdateServiceRequest $request,$id)
     {
         $service = Service::findOrFail($id);
@@ -111,6 +116,7 @@ class ServiceController extends Controller
         ]);
     }
 
+    //delete the service, each service deleted the system will resend the list of service to mqtt
     public function destroy($id){
         $service = Service::findOrFail($id);
         if(!$service){

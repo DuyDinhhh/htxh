@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import DeviceService from "../../services/deviceService";
 import StaffService from "../../services/staffService";
 
+// Format a date/time string for display.
 function formatDate(dt) {
   if (!dt) return "";
   const d = new Date(dt);
@@ -13,7 +14,7 @@ function formatDate(dt) {
     d.getMonth() + 1
   }/${d.getFullYear()}`;
 }
-
+// Pagination control button.
 function PaginationButton({
   label,
   active = false,
@@ -48,7 +49,7 @@ function PaginationButton({
     </button>
   );
 }
-
+// KPI card for quick stats.
 const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
   <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
     <div className="flex items-center justify-between">
@@ -68,12 +69,14 @@ const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
   </div>
 );
 
+// Feedback list page logic (filters, pagination, export).
 const FeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [staffs, setStaffs] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState([]);
+  // Selected rating filter value.
   const [value, setValue] = useState([]);
   const [quickview, setQuickview] = useState({
     total: 0,
@@ -105,6 +108,7 @@ const FeedbackManagement = () => {
   const [sort, setSort] = useState("desc");
   const [exporting, setExporting] = useState(false);
 
+  // Load staff options.
   const fetchStaffs = async () => {
     try {
       const res = await StaffService.list();
@@ -114,6 +118,7 @@ const FeedbackManagement = () => {
       toast.error("Lỗi khi tải danh sách nhân viên", { autoClose: 500 });
     }
   };
+  // Load service options.
   const fetchServices = async () => {
     try {
       const res = await ServiceService.list();
@@ -123,7 +128,7 @@ const FeedbackManagement = () => {
       toast.error("Lỗi khi tải danh sách dịch vụ", { autoClose: 500 });
     }
   };
-
+  // Load device options.
   const fetchDevices = async () => {
     try {
       const res = await DeviceService.list();
@@ -133,6 +138,7 @@ const FeedbackManagement = () => {
       toast.error("Lỗi khi tải danh sách thiết bị", { autoClose: 500 });
     }
   };
+  // Load feedbacks with current filters.
   const fetchFeedbacks = async (page = 1) => {
     setLoading(true);
     try {
@@ -187,6 +193,7 @@ const FeedbackManagement = () => {
     setLoading(false);
   };
 
+  // Initial data load.
   useEffect(() => {
     fetchServices();
     fetchDevices();
@@ -194,10 +201,12 @@ const FeedbackManagement = () => {
     fetchFeedbacks(1);
   }, []);
 
+  // Reload when filters/sort change.
   useEffect(() => {
     fetchFeedbacks(1);
   }, [staffId, deviceId, serviceId, dateFrom, dateTo, sort, value]);
 
+  // Change page with bounds check.
   const handlePageChange = (newPage) => {
     if (
       newPage >= 1 &&
@@ -208,6 +217,7 @@ const FeedbackManagement = () => {
     }
   };
 
+  // Build a page number window.
   const getPageNumbers = () => {
     const { current_page, last_page } = pagination;
     const maxPagesToShow = 5;
@@ -224,6 +234,7 @@ const FeedbackManagement = () => {
     return pageNumbers;
   };
 
+  // Export current filtered data to Excel.
   const handleExport = async () => {
     setExporting(true);
     try {

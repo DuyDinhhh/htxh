@@ -4,6 +4,7 @@ import DeviceService from "../../services/deviceService";
 import ServiceService from "../../services/serviceService";
 import { toast } from "react-toastify";
 
+// Device edit page logic (load device/services, assign services, save).
 const DeviceEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const DeviceEdit = () => {
   const [errors, setErrors] = useState({});
   const [deviceName, setDeviceName] = useState("");
 
+  // Load device + available services for assignment.
   useEffect(() => {
     const fetchDeviceAndServices = async () => {
       setLoading(true);
@@ -25,7 +27,7 @@ const DeviceEdit = () => {
 
         const serviceRes = await ServiceService.list();
         const validServices = (serviceRes.services || []).filter(
-          (service) => !service.deleted_at
+          (service) => !service.deleted_at,
         );
         setServices(validServices || []);
 
@@ -48,6 +50,7 @@ const DeviceEdit = () => {
     fetchDeviceAndServices();
   }, [id]);
 
+  // Toggle a service in the selection map.
   const handleServiceCheck = (serviceId) => {
     setSelectedServices((prev) => {
       if (prev[serviceId]) {
@@ -60,8 +63,10 @@ const DeviceEdit = () => {
     setErrors({});
   };
 
+  // Update device name input.
   const handleDeviceNameChange = (e) => setDeviceName(e.target.value);
 
+  // Update priority for a selected service.
   const handlePriorityChange = (serviceId, value) => {
     setSelectedServices((prev) => ({
       ...prev,
@@ -69,6 +74,7 @@ const DeviceEdit = () => {
     }));
   };
 
+  // Submit updated device + service assignments.
   const handleSubmit = async (e) => {
     e.preventDefault();
     // if (Object.keys(selectedServices).length === 0) {
@@ -81,7 +87,7 @@ const DeviceEdit = () => {
         ([service_id, priority_number]) => ({
           service_id,
           priority_number,
-        })
+        }),
       );
       const payload = {
         name: deviceName,

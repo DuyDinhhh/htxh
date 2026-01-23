@@ -19,27 +19,28 @@ class MqttSubscribe extends Command
         parent::__construct();
     }
 
+    // run artisan mqtt:subscribe "#" to start listen for all topics
     public function handle()
     {
         $topic = $this->argument('topic');
 
-        if($topic === 'requestnumber'){
-            $devices = Device::select('id', 'name')->get();
-            $services = Service::whereHas('devices')
-                ->select('id', 'name')
-                ->get();            
-            $mqtt = MQTT::connection('publisher');
-            $mqtt->publish("device/list", json_encode($devices),0,true);
-            $mqtt->publish("service/list", json_encode($services),0,true);
-            $mqtt->disconnect();
-        }
+        // if($topic === 'requestnumber'){
+        //     $devices = Device::select('id', 'name')->get();
+        //     $services = Service::whereHas('devices')
+        //         ->select('id', 'name')
+        //         ->get();            
+            // $mqtt = MQTT::connection('publisher');
+            // $mqtt->publish("device/list", json_encode($devices),0,true);
+            // $mqtt->publish("service/list", json_encode($services),0,true);
+            // $mqtt->disconnect();
+        // }
 
         $mqtt = MQTT::connection();
         if($topic !== "#"){
             $this->info("Subscribing to topic: {$topic}");
             $this->logMqttEvent('connect', $topic, 'Subscribe to the topic: '.$topic);
         }
-        
+        // switch case to each topics will trigger an event-listener to response to mqtt
         $mqtt->subscribe($topic, function (string $topic, string $message) {
             $this->info(sprintf("Received message on topic [%s]: %s", $topic, $message));
             $data = json_decode($message, true);

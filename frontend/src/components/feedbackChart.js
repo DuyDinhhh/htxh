@@ -6,6 +6,7 @@ const FeedbackChart = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // call api get data for feedback chart
   useEffect(() => {
     const fetchFeedbackData = async () => {
       setLoading(true);

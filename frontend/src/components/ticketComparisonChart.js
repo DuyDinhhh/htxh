@@ -6,6 +6,7 @@ const TicketComparisonChart = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // call api get data for circle chart
   useEffect(() => {
     const fetchTicketData = async () => {
       setLoading(true);

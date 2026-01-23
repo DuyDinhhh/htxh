@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import StaffService from "../../services/staffService";
 
+// Format a date/time string for display.
 function formatDate(dt) {
   if (!dt) return "";
   const d = new Date(dt);
@@ -11,6 +12,7 @@ function formatDate(dt) {
   }/${d.getFullYear()}`;
 }
 
+// Pagination control button.
 function PaginationButton({
   label,
   active = false,
@@ -46,6 +48,7 @@ function PaginationButton({
   );
 }
 
+// KPI card.
 const SummaryCard = ({ title, value, icon, bg = "bg-white" }) => (
   <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
     <div className="flex items-center justify-between">
@@ -60,6 +63,7 @@ const SummaryCard = ({ title, value, icon, bg = "bg-white" }) => (
   </div>
 );
 
+// Staff list page logic (fetch, delete, filter, pagination).
 const StaffManagement = () => {
   const perPage = 8;
   const [staffs, setStaffs] = useState([]);
@@ -78,6 +82,7 @@ const StaffManagement = () => {
   // const [sort, setSort] = useState("desc");
   const [sort] = useState("desc");
 
+  // Fetch paginated staff list.
   const fetchStaffs = async (page = 1) => {
     setLoading(true);
     try {
@@ -113,10 +118,12 @@ const StaffManagement = () => {
     }
   };
 
+  // Initial data load.
   useEffect(() => {
     fetchStaffs(1);
   }, []);
 
+  // Build a page number window.
   const getPageNumbers = () => {
     const { current_page, last_page } = pagination;
     const maxPagesToShow = 5;
@@ -131,6 +138,7 @@ const StaffManagement = () => {
     return pageNumbers;
   };
 
+  // Change page with bounds check.
   const handlePageChange = (newPage) => {
     if (
       newPage >= 1 &&
@@ -141,6 +149,7 @@ const StaffManagement = () => {
     }
   };
 
+  // Filter and sort staff list by search and sort order.
   const filteredStaffs = useMemo(() => {
     let list = [...staffs];
 
@@ -162,6 +171,7 @@ const StaffManagement = () => {
     return list;
   }, [staffs, search, sort]);
 
+  // Delete a staff then refresh current page.
   const handleDelete = async (staff) => {
     const ok = window.confirm(
       `Xoá nhân viên "${staff?.name || staff?.username || ""}"?`,

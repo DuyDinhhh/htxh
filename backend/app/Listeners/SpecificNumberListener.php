@@ -18,7 +18,8 @@ class SpecificNumberListener
     {
         //
     }
- 
+
+    // get the specific number, in case priority, people can call any number if they exists
     public function handle(NumberSpecific $event): void
     {
         try {

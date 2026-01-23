@@ -9,6 +9,7 @@ use Carbon\Carbon;
 
 class ActivityLogController extends Controller
 {
+    // Return list about user activity allow filter by log_name, event, datefrom, dateto, sort by created_at
     public function index(Request $request)
     {
         $perPage = (int) $request->input('per_page', 15);
@@ -58,7 +59,7 @@ class ActivityLogController extends Controller
         ]);
     }
 
-
+    // Return list about mqtt messages allow filter by log_name, event, datefrom, dateto, sort by created_at
     public function deployment(Request $request)
     {
         $perPage = (int) $request->input('per_page', 15);

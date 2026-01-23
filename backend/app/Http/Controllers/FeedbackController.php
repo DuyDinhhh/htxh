@@ -9,6 +9,7 @@ use Carbon\Carbon;
 
 class FeedbackController extends Controller
 {
+    // get feedback list allow filter by service, device, staff, value, datefrom, dateto , sort by created_at
     public function index(Request $request){
         $today = Carbon::today()->format('Y-m-d'); 
 
@@ -75,7 +76,7 @@ class FeedbackController extends Controller
             'quickview'=>$quickview
         ]);
     }
-
+    // export feedback is filtering/ limit 1000000 rows at once
     public function export(Request $request)
     {
         ini_set('max_execution_time', 0);
@@ -140,6 +141,7 @@ class FeedbackController extends Controller
         return $this->downloadExcel($feedback_array, 'feedbacks.xlsx');
     }
 
+    // after export automatically download the excel file
     protected function downloadExcel(array $data, string $filename = 'export.xlsx')
     {
         ini_set('max_execution_time', 0);
@@ -165,6 +167,7 @@ class FeedbackController extends Controller
         }
     }
 
+    //get the feedback of the staff by month, show stats about the selected month compare to the previous month
     public function getMonthlyStats(Request $request)
     {
         $month = $request->input('month'); // Format: "2025-01"

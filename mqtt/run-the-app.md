@@ -21,7 +21,7 @@ Create a `.env` file in the **root directory** of your project with the followin
 # General Application Settings
 APP_NAME=Laravel
 APP_ENV=local
-APP_KEY=base64:IUIqviiwtBeaC9CGtWhyyLT9iUtYz/bSwJTHSAVCcxo=
+APP_KEY= <put app-key here>
 APP_URL=http://localhost
 
 # Database Settings
@@ -56,7 +56,7 @@ MQTT_PORT=1884
 MQTT_AUTH_USERNAME=appuser
 
 # JWT Secret
-JWT_SECRET=JureZLpeSad8WQpAFLDUuPHSgY1SdmBDWJUIgqDJVZIXqNgLuzbEqqNX6EO6L8S7
+JWT_SECRET= <put secret-key here>
 ```
 
 ### Generate Laravel APP_KEY and JWT_SECRET

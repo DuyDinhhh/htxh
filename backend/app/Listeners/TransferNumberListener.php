@@ -22,6 +22,8 @@ class TransferNumberListener
     /**
      * Handle the event.
      */
+
+    //transfer number to a specific counter, and at the top position
     public function handle(NumberTransfer $event): void
     {
         try {

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->index('event', 'idx_event');
             $table->index(['causer_type', 'causer_id'], 'idx_causer');
             $table->index(['subject_type', 'subject_id'], 'idx_subject');
-            $table->index('created_at', 'idx_created_at');
+            $table->index('created_at', 'idx_activity_created_at');
         });
     }
 

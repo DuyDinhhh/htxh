@@ -15,7 +15,7 @@ return new class extends Migration
             // Add indexes to the existing 'tickets' table
             $table->index('device_id', 'idx_device_id');
             $table->index('service_id', 'idx_service_id');
-            $table->index('created_at', 'idx_created_at');
+            $table->index('created_at', 'idx_tickets_created_at');
             $table->index(['device_id', 'service_id'], 'idx_device_service');
             $table->index(['service_id', 'created_at'], 'tickets_service_id_created_at_sequence_index');
         });

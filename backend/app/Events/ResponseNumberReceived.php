@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;  
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ResponseNumberReceived implements ShouldBroadcastNow
 {
@@ -26,7 +27,6 @@ class ResponseNumberReceived implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        \Log::info('Broadcasting event with data: ', $this->data);
         return ['payload' => $this->data];
     }
 }

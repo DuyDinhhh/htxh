@@ -24,6 +24,8 @@ const chunkArray = (array, size) => {
   return result;
 };
 
+// Layout helper: split services into columns
+
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -38,11 +40,13 @@ const normalizeHex = (val = "") => {
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
+// Color helpers: validate and normalize hex colors
+
 const parseLayoutFromServer = (
   data,
   setGlobalDims,
   setPerServiceSettings,
-  setUseFixedOnMobile
+  setUseFixedOnMobile,
 ) => {
   if (data?.global) {
     const g = data.global;
@@ -72,6 +76,8 @@ const parseLayoutFromServer = (
   }
 };
 
+// Parse button layout and per-service positioning from server data
+
 const TicketDisplay = () => {
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -91,13 +97,15 @@ const TicketDisplay = () => {
   const [useFixedOnMobile, setUseFixedOnMobile] = useState(false);
 
   const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
+    typeof window !== "undefined" ? window.innerWidth < 768 : false,
   );
 
   const resizeListenerRef = useRef(null);
   const canvasRef = useRef(null);
 
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  // Utility: clamp value within [min, max]
 
   /** ------------ RESPONSIVE ------------- */
   useEffect(() => {
@@ -114,6 +122,8 @@ const TicketDisplay = () => {
     };
   }, []);
 
+  // Responsive: track window size to set `isMobile`
+
   /** ------------ LOAD SERVICES ------------- */
   useEffect(() => {
     const fetchServices = async () => {
@@ -124,7 +134,7 @@ const TicketDisplay = () => {
           (service) =>
             Array.isArray(service.devices) &&
             service.devices.length > 0 &&
-            !service.deleted_at
+            !service.deleted_at,
         );
         setServices(validServices || []);
       } catch (err) {
@@ -136,6 +146,8 @@ const TicketDisplay = () => {
     };
     fetchServices();
   }, []);
+
+  // Load services list and filter valid ones
 
   useEffect(() => {
     let mounted = true;
@@ -202,6 +214,8 @@ const TicketDisplay = () => {
     };
   }, []);
 
+  // Load kiosk configuration (colors, photo, texts)
+
   /** ------------ LOAD BUTTON LAYOUT TỪ config/buttons ------------- */
   useEffect(() => {
     const loadButtonLayout = async () => {
@@ -212,7 +226,7 @@ const TicketDisplay = () => {
           data,
           setGlobalDims,
           setPerServiceSettings,
-          setUseFixedOnMobile
+          setUseFixedOnMobile,
         );
       } catch (e) {
         console.error("Không tải được layout nút từ config/buttons:", e);
@@ -221,6 +235,8 @@ const TicketDisplay = () => {
     };
     loadButtonLayout();
   }, []);
+
+  // Load saved button layout from `config/buttons`
 
   /** ------------ ĐĂNG KÝ SỐ THỨ TỰ ------------- */
   const debouncedRegister = useCallback(
@@ -235,17 +251,19 @@ const TicketDisplay = () => {
         } catch (err) {
           toast.error(
             err?.response?.data?.message || "Đăng ký số thứ tự thất bại.",
-            { autoClose: 500 }
+            { autoClose: 500 },
           );
         } finally {
           setRegistering((prev) => ({ ...prev, [id]: false }));
         }
       },
       700,
-      { leading: true, trailing: false }
+      { leading: true, trailing: false },
     ),
-    []
+    [],
   );
+
+  // Debounced register: avoid duplicate rapid registrations
 
   useEffect(() => {
     return () => {
@@ -254,6 +272,8 @@ const TicketDisplay = () => {
   }, [debouncedRegister]);
 
   const handleRegister = (id) => debouncedRegister(id);
+
+  // Handler to start ticket registration
 
   /** ------------ LAYOUT HELPERS ------------- */
   const headerBg = config?.bg_top_color ?? DEFAULT_BG;
@@ -276,6 +296,8 @@ const TicketDisplay = () => {
       y: Number.isFinite(s.y) ? s.y : undefined,
     };
   };
+
+  // Build per-service button settings with global fallbacks
 
   /** ------------ RENDER ------------- */
   return (

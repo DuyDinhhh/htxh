@@ -11,6 +11,7 @@ use Carbon\Carbon;
 
 class ConfigController extends Controller
 {
+    //Get the config for kiosk getumber, queue list tv but ******** do not use anymore**********
     public function index()
     {
         $config = Config::first();
@@ -21,6 +22,7 @@ class ConfigController extends Controller
         ]);
     }
 
+    //Get the config for kiosk getumber, queue list tv but ******** do not use anymore**********
     public function store(StoreConfigRequest $request){
         $config = new Config();
         $config->text_top = $request->text_top;

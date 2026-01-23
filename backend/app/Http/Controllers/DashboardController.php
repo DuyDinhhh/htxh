@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\Feedback;
 class DashboardController extends Controller
 {
+    //get data for the column chart in homepage of the dashboard
     public function columnChart()
     {
         $months = [
@@ -37,7 +38,7 @@ class DashboardController extends Controller
 
         return response()->json($ticketForMonths);
     }
-
+    //get data for the circle chart in homepage of the dashboard
     public function circleChart()
     {
         $now = Carbon::now();
@@ -70,7 +71,7 @@ class DashboardController extends Controller
         ];
         return response()->json($data);
     }
-
+    //get data for the feedback chart in homepage of the dashboard
     public function feedbackChart()
     {
         $currentMonthStart = Carbon::now()->startOfMonth();

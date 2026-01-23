@@ -18,6 +18,7 @@ const TicketTrendChart = () => {
   const [error, setError] = useState(null);
   const [activeBar, setActiveBar] = useState(null);
 
+  //call api get data for trending ticket
   useEffect(() => {
     const fetchTicketData = async () => {
       setLoading(true);

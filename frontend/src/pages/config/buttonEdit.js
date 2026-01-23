@@ -31,6 +31,7 @@ const chunkArray = (array, size) => {
   return result;
 };
 
+// correct data type
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -55,7 +56,7 @@ const serializeLayout = (globalDims, perServiceSettings, useFixedOnMobile) => {
       v_align: s.vAlign,
       x: s.x,
       y: s.y,
-    })
+    }),
   );
 
   return {
@@ -77,7 +78,7 @@ const parseLayoutFromServer = (
   data,
   setGlobalDims,
   setPerServiceSettings,
-  setUseFixedOnMobile
+  setUseFixedOnMobile,
 ) => {
   if (data?.global) {
     const g = data.global;
@@ -130,7 +131,7 @@ const TicketButtonConfig = () => {
 
   const [selectedServiceId, setSelectedServiceId] = useState(null);
   const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
+    typeof window !== "undefined" ? window.innerWidth < 768 : false,
   );
   const [showControls, setShowControls] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -175,7 +176,7 @@ const TicketButtonConfig = () => {
           (service) =>
             Array.isArray(service.devices) &&
             service.devices.length > 0 &&
-            !service.deleted_at
+            !service.deleted_at,
         );
         setServices(validServices || []);
       } catch (err) {
@@ -263,7 +264,7 @@ const TicketButtonConfig = () => {
           data,
           setGlobalDims,
           setPerServiceSettings,
-          setUseFixedOnMobile
+          setUseFixedOnMobile,
         );
       } catch (e) {
         console.error("Không tải được button layout:", e);
@@ -281,7 +282,7 @@ const TicketButtonConfig = () => {
           const payload = serializeLayout(
             globalDimsArg,
             perServiceSettingsArg,
-            useFixedOnMobileArg
+            useFixedOnMobileArg,
           );
           await ConfigService.saveButton(payload);
         } catch (e) {
@@ -291,9 +292,9 @@ const TicketButtonConfig = () => {
           setSaving(false);
         }
       },
-      800
+      800,
     ),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -385,7 +386,7 @@ const TicketButtonConfig = () => {
       const newW = clamp(
         (Number.isFinite(cur.width) ? cur.width : globalDims.width) + delta,
         MIN_BUTTON_WIDTH,
-        MAX_BUTTON_WIDTH
+        MAX_BUTTON_WIDTH,
       );
       return { ...prev, [selectedServiceId]: { ...cur, width: newW } };
     });
@@ -398,7 +399,7 @@ const TicketButtonConfig = () => {
         height: clamp(
           prev.height + delta,
           MIN_BUTTON_HEIGHT,
-          MAX_BUTTON_HEIGHT
+          MAX_BUTTON_HEIGHT,
         ),
       }));
       return;
@@ -408,7 +409,7 @@ const TicketButtonConfig = () => {
       const newH = clamp(
         (Number.isFinite(cur.height) ? cur.height : globalDims.height) + delta,
         MIN_BUTTON_HEIGHT,
-        MAX_BUTTON_HEIGHT
+        MAX_BUTTON_HEIGHT,
       );
       return { ...prev, [selectedServiceId]: { ...cur, height: newH } };
     });
@@ -428,7 +429,7 @@ const TicketButtonConfig = () => {
         const pos = computeAlignedPosition(
           selectedServiceId,
           align,
-          cur.vAlign || globalDims.vAlign
+          cur.vAlign || globalDims.vAlign,
         );
         if (pos && typeof pos.x === "number") {
           next[selectedServiceId].x = Math.round(pos.x);
@@ -451,7 +452,7 @@ const TicketButtonConfig = () => {
         const pos = computeAlignedPosition(
           selectedServiceId,
           cur.hAlign || globalDims.hAlign,
-          align
+          align,
         );
         if (pos && typeof pos.y === "number") {
           next[selectedServiceId].y = Math.round(pos.y);
@@ -636,14 +637,14 @@ const TicketButtonConfig = () => {
             (Number.isFinite(cur.height)
               ? cur.height
               : getSettingsFor(id).height) -
-            8
+            8,
         );
         const centerY = Math.round(
           (rect.height -
             (Number.isFinite(cur.height)
               ? cur.height
               : getSettingsFor(id).height)) /
-            2
+            2,
         );
 
         let finalHAlign = cur.hAlign || getSettingsFor(id).hAlign;
@@ -715,8 +716,8 @@ const TicketButtonConfig = () => {
       ? getSettingsFor(selectedServiceId)
       : globalDims;
     const selectedName = selectedServiceId
-      ? services.find((s) => s.id === selectedServiceId)?.name ??
-        selectedServiceId
+      ? (services.find((s) => s.id === selectedServiceId)?.name ??
+        selectedServiceId)
       : null;
 
     return (
@@ -945,7 +946,7 @@ const TicketButtonConfig = () => {
           className="text-lg font-semibold text-center uppercase"
           style={{ color: headerTextColor }}
         >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_top ?? ""}
+          {loadingConfig ? "Đang tải cấu hình..." : (config?.text_top ?? "")}
         </div>
       </header>
 
@@ -1049,7 +1050,7 @@ const TicketButtonConfig = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedServiceId((prev) =>
-                                prev === service.id ? null : service.id
+                                prev === service.id ? null : service.id,
                               );
                             }}
                             title={
@@ -1144,7 +1145,7 @@ const TicketButtonConfig = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedServiceId((prev) =>
-                            prev === service.id ? null : service.id
+                            prev === service.id ? null : service.id,
                           );
                         }}
                         onDoubleClick={(ev) => {

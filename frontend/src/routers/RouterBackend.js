@@ -32,6 +32,7 @@ import StaffFeedbackDetail from "../pages/feedbacks/detail";
 //   return isAuthenticated() ? children : <Navigate to="/login" />;
 // };
 
+// Main backend route configuration for the admin app
 const RouterBackend = [
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
@@ -52,6 +53,7 @@ const RouterBackend = [
     //   </ProtectedRoute>
     // ),
     element: <LayoutAdmin />,
+    // Child routes for admin dashboard, devices, logs, tickets, staff, services, feedbacks, config
     children: [
       { path: "", element: <Dashboard /> },
       { path: "/admin", element: <Dashboard /> },

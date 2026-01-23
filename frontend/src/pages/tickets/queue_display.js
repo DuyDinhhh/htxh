@@ -7,6 +7,7 @@ import mqtt from "mqtt";
 const MAX_ROWS = 7;
 const DEFAULT_BG = "#B3AAAA";
 
+// Validate hex color string
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 
@@ -20,6 +21,7 @@ const normalizeHex = (val = "") => {
   return v;
 };
 
+// Return normalized hex or fallback
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
@@ -52,6 +54,7 @@ export default function QueueDisplayWithTTS() {
   const audioCache = useRef({});
 
   useEffect(() => {
+    // Preload TTS audio files into cache
     const preloadAudio = () => {
       const files = [
         "xinmoiso",
@@ -93,7 +96,7 @@ export default function QueueDisplayWithTTS() {
     };
   }, []);
 
-  // ---------- Play audio sequence ----------
+  // Play cached audio files sequentially for TTS
   const playAudioSequence = async (audioFiles) => {
     if (!ttsEnabled || audioFiles.length === 0) {
       return;
@@ -132,7 +135,7 @@ export default function QueueDisplayWithTTS() {
     }
   };
 
-  // ---------- Add to TTS queue ----------
+  // Enqueue ticket and counter for TTS playback
   const speakMulti = (ticketStr, counterStr) => {
     if (!ttsEnabled) return;
     ttsQueueRef.current.push({ ticketStr, counterStr });
@@ -141,7 +144,7 @@ export default function QueueDisplayWithTTS() {
     }
   };
 
-  // ---------- Process TTS queue ----------
+  // Dequeue and play queued TTS sequences one-by-one
   const processTTSQueue = async () => {
     if (isSpeakingRef.current) return;
     if (ttsQueueRef.current.length === 0) return;
@@ -182,7 +185,7 @@ export default function QueueDisplayWithTTS() {
     }, 1000);
   };
 
-  // ---------- Load CONFIG once ----------
+  // Load display config once (colors, table styles, photo)
   useEffect(() => {
     let mounted = true;
 
@@ -210,7 +213,7 @@ export default function QueueDisplayWithTTS() {
         const tableText = safeColor(cfg?.table_text_color, "#000000");
         const tableTextActive = safeColor(
           cfg?.table_text_active_color,
-          "#ff0000"
+          "#ff0000",
         );
 
         const textTopColor = safeColor(cfg?.text_top_color, "#b10730");
@@ -288,6 +291,7 @@ export default function QueueDisplayWithTTS() {
       password: mqttPassword,
     });
 
+    // MQTT: connect and subscribe to ticket topic
     client.on("connect", () => {
       console.log("Connected to MQTT broker!");
       setLoadingTickets(false);
@@ -300,6 +304,7 @@ export default function QueueDisplayWithTTS() {
       });
     });
 
+    // MQTT: incoming messages handler
     client.on("message", (receivedTopic, message) => {
       try {
         const payload = JSON.parse(message.toString());
@@ -375,6 +380,7 @@ export default function QueueDisplayWithTTS() {
       const parts = rawCounter.split(" ");
       const lastPart = parts[parts.length - 1];
 
+      // Trigger TTS for initial top ticket
       speakMulti(ticketPartRaw, lastPart);
       return;
     }
@@ -397,7 +403,7 @@ export default function QueueDisplayWithTTS() {
       const parts = rawCounter.split(" ");
       const lastPart = parts[parts.length - 1];
 
-      // Trigger TTS
+      // Trigger TTS for updated top ticket
       speakMulti(ticketPartRaw, lastPart);
     }
   }, [tickets, ttsEnabled]);
@@ -443,7 +449,7 @@ export default function QueueDisplayWithTTS() {
               >
                 {loadingConfig
                   ? "Đang tải cấu hình..."
-                  : config?.text_top ?? ""}
+                  : (config?.text_top ?? "")}
               </div>{" "}
             </div>
           </div>
@@ -568,7 +574,7 @@ export default function QueueDisplayWithTTS() {
             color: "#FFFFFF",
           }}
         >
-          {loadingConfig ? "Đang tải cấu hình..." : config?.text_bottom ?? ""}
+          {loadingConfig ? "Đang tải cấu hình..." : (config?.text_bottom ?? "")}
         </div>
       </footer>
 

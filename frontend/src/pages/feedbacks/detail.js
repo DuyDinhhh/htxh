@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// KPI card for feedback stats.
 const SummaryCard = ({
   title,
   monthValue,
@@ -78,6 +79,7 @@ const SummaryCard = ({
   </div>
 );
 
+// Staff feedback analytics page logic (fetch stats, chart data, helpers).
 const StaffFeedbackDetail = () => {
   const { id } = useParams();
   const [staff, setStaff] = useState(null);
@@ -118,22 +120,26 @@ const StaffFeedbackDetail = () => {
     },
   });
 
+  // Load staff info on mount or id change.
   useEffect(() => {
     fetchStaffInfo();
   }, [id]);
 
+  // Load pie chart data when id or month changes.
   useEffect(() => {
     if (id) {
       fetchPieData();
     }
   }, [id, pieMonth]);
 
+  // Load bar chart data when id or compared months change.
   useEffect(() => {
     if (id) {
       fetchBarData();
     }
   }, [id, barMonth1, barMonth2]);
 
+  // Fetch staff info from API.
   const fetchStaffInfo = async () => {
     setLoading(true);
     try {
@@ -146,6 +152,7 @@ const StaffFeedbackDetail = () => {
     }
   };
 
+  // Fetch monthly feedback stats for pie chart.
   const fetchPieData = async () => {
     try {
       const feedbackRes = await FeedbackService.getMonthlyStats(id, pieMonth);
@@ -196,6 +203,7 @@ const StaffFeedbackDetail = () => {
     }
   };
 
+  // Fetch feedback stats for two months for bar chart.
   const fetchBarData = async () => {
     try {
       const [month1Data, month2Data] = await Promise.all([
@@ -224,12 +232,14 @@ const StaffFeedbackDetail = () => {
     }
   };
 
+  // Format YYYY-MM to 'Tháng MM/YYYY'.
   const formatMonthLabel = (monthStr) => {
     const [year, month] = monthStr.split("-");
     return `Tháng ${month}/${year}`;
   };
 
   // Custom Tooltips
+  // Custom tooltip for bar chart.
   const CustomBarTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -268,6 +278,7 @@ const StaffFeedbackDetail = () => {
     return null;
   };
 
+  // Custom tooltip for pie chart.
   const CustomPieTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0];
@@ -304,6 +315,7 @@ const StaffFeedbackDetail = () => {
     return null;
   };
 
+  // Render percentage label for pie chart.
   const renderCustomLabel = (entry) => {
     const total = pieData.reduce((sum, item) => sum + item.value, 0);
     const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;

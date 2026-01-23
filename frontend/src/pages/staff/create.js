@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import StaffService from "../../services/staffService";
 
+// Staff create page logic (form, validate, submit).
 const AddStaff = () => {
   const navigate = useNavigate();
 
@@ -14,6 +15,7 @@ const AddStaff = () => {
   });
   const [saving, setSaving] = useState(false);
 
+  // Submit new staff to API.
   const handleSubmit = async (e) => {
     e.preventDefault();
 

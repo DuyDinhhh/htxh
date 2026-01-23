@@ -18,7 +18,7 @@ class ResponseNumberListener
         //
     }
 
-     
+    //response new number for the called counter, depend on priority
     public function handle(NumberRequest $event): void
     {
         try {

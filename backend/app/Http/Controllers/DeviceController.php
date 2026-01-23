@@ -10,6 +10,7 @@ use PhpMqtt\Client\Facades\MQTT;
 
  class DeviceController extends Controller
 {
+    //get service list
     public function index(){
         $devices = Device::with('services')->paginate(8);
 
@@ -30,6 +31,7 @@ use PhpMqtt\Client\Facades\MQTT;
         ]);
     }
 
+    //get service full list include the services deleted
     public function list(){
         $devices = Device::withTrashed()
             ->with('services')
@@ -41,6 +43,7 @@ use PhpMqtt\Client\Facades\MQTT;
         ]);
     }
 
+    //get service detail
     public function show($id){
         $device = Device::with('services')->findOrFail($id);
         if(!$device){
@@ -55,6 +58,8 @@ use PhpMqtt\Client\Facades\MQTT;
         ]);
     } 
      
+    // assign the service to a device, allow to set priority also
+    // after update it will automatically send the new device list updated to mqtt topic
     public function assignService(Request $request, $id)
     {
         $device = Device::findOrFail($id);

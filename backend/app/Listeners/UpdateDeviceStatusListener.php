@@ -21,6 +21,8 @@ class UpdateDeviceStatusListener
     /**
      * Handle the event.
      */
+
+    // listen to mqtt and auto update the status of the counter
     public function handle(DeviceStatusReceived $event): void
     {
         $data = is_array($event->data) ? $event->data : json_decode($event->data, true);

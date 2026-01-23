@@ -6,6 +6,7 @@ import ConfigService from "../../services/configService";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// Render status badge for a ticket
 function StatusBadge({ status }) {
   const s = (status || "").toString().toLowerCase();
   const base =
@@ -28,7 +29,7 @@ function StatusBadge({ status }) {
   }
   return <span className={`${base} bg-gray-50 text-gray-700`}>-</span>;
 }
-
+// Compact pagination button used in footer
 function PaginationButton({
   label,
   active = false,
@@ -63,7 +64,7 @@ function PaginationButton({
     </button>
   );
 }
-
+// Small dashboard card showing totals and today's counts
 const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
   <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
     <div className="flex items-center justify-between">
@@ -82,7 +83,7 @@ const SummaryCard = ({ title, value, today, icon, bg = "bg-white" }) => (
     </div>
   </div>
 );
-
+// Convert ISO/timestamp to localized date/time string
 function formatDate(dt) {
   if (!dt) return "";
   const d = new Date(dt);
@@ -126,6 +127,7 @@ const TicketManagement = () => {
   const [sort, setSort] = useState("desc");
   const [exporting, setExporting] = useState(false);
 
+  // Load available services for filters
   const fetchServices = async () => {
     try {
       const res = await ServiceService.list();
@@ -136,6 +138,7 @@ const TicketManagement = () => {
     }
   };
 
+  // Load devices for filters
   const fetchDevices = async () => {
     try {
       const res = await DeviceService.list();
@@ -146,6 +149,7 @@ const TicketManagement = () => {
     }
   };
 
+  // Reset counters via config service
   const handleReset = async () => {
     if (!window.confirm("Bạn có chắc chắn muốn reset số?")) return;
     try {
@@ -157,6 +161,7 @@ const TicketManagement = () => {
     }
   };
 
+  // Fetch tickets list with current filters and pagination
   const fetchTickets = async (page = 1) => {
     setLoading(true);
     try {
@@ -214,11 +219,13 @@ const TicketManagement = () => {
   };
 
   useEffect(() => {
+    // Initial load: services, devices and first page of tickets
     fetchServices();
     fetchDevices();
     fetchTickets(1);
   }, []);
 
+  // Debounce filter changes before reloading tickets
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchTickets(1);
@@ -251,6 +258,8 @@ const TicketManagement = () => {
     }
     return pageNumbers;
   };
+
+  // Compute visible pagination numbers for footer
 
   const handleExport = async () => {
     setExporting(true);
@@ -289,6 +298,8 @@ const TicketManagement = () => {
       setExporting(false);
     }
   };
+
+  // Export current filtered tickets to Excel
 
   return (
     <div className="w-full px-8 py-8">

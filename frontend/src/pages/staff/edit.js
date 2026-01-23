@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import StaffService from "../../services/staffService";
 
+// Staff edit page logic (load, form, validate, submit).
 const EditStaff = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const EditStaff = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Load staff data for editing.
   useEffect(() => {
     if (!id) {
       toast.error("ID nhân viên không hợp lệ", { autoClose: 1200 });
@@ -43,6 +45,7 @@ const EditStaff = () => {
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
+  // Submit updated staff to API.
   const handleSubmit = async (e) => {
     e.preventDefault();
 

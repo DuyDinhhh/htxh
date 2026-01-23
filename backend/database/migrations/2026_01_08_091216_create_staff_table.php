@@ -19,7 +19,7 @@ return new class extends Migration
             $table->softDeletes();
  
             $table->index('name', 'idx_name');
-            $table->index('created_at', 'idx_created_at');
+            $table->index('created_at', 'idx_staff_created_at');
         });
     }
 

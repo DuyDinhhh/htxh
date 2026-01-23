@@ -87,8 +87,6 @@ These endpoints manage generating tickets, validating/generating QR codes, and p
 
 - **POST /login**: Log in and receive a JWT token.
 
----
-
 ### **QMS Core Dashboard API Endpoints** (Requires JWT)
 
 Administration and dashboard endpoints for staff, devices, services, tickets, logs, feedback, and configuration. All routes below require the **Authorization** header: `Bearer <token>`.
@@ -142,10 +140,7 @@ Administration and dashboard endpoints for staff, devices, services, tickets, lo
 
 #### **Configuration (prefix: /config)**
 
-- **POST /config/buttons**: Save button configuration.
-- **POST /config**: Create/store configuration.
-- **POST /config/{id}**: Update configuration.
-- **GET /config/reset**: Reset numbering/counters.
+- **GET /config/reset**: Reset numbering for the day.
 
 #### **Activity & Deployment Logs**
 

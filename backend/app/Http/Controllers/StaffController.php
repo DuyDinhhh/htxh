@@ -9,6 +9,7 @@ use App\Http\Requests\Staff\UpdateStaffRequest;
 
 class StaffController extends Controller
 {
+    // get list of staff
     public function index(){
         $staff = Staff::paginate(8);
         if(!$staff){
@@ -23,7 +24,8 @@ class StaffController extends Controller
             'staff' => $staff
         ]);
     }
-
+    
+    // get list of staff include deleted staff, main goal is for filter dropdown data
     public function list(){
         $staff = Staff::withTrashed()->get();
         if(!$staff){
@@ -39,6 +41,7 @@ class StaffController extends Controller
         ]);
     }
 
+    // get staff detail
     public function show($id){
         $staff = Staff::findOrFail($id);
         if(!$staff){
@@ -54,6 +57,7 @@ class StaffController extends Controller
         ]);
     }
 
+    //create new staff
     public function store(StoreStaffRequest $request){
         try {
             $staff = new Staff();
@@ -78,6 +82,7 @@ class StaffController extends Controller
         }
     }
 
+    //update staff data
     public function update(UpdateStaffRequest $request,$id){
         try {
             $staff = Staff::findOrFail($id);
@@ -114,7 +119,7 @@ class StaffController extends Controller
             ], 500);
         }
     }
-
+    // delete staff
     public function delete($id){
         try {
             $staff = Staff::findOrFail($id);

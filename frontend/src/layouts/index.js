@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 
+// layout
 function LayoutAdmin() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   return (

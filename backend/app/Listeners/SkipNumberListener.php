@@ -22,6 +22,8 @@ class SkipNumberListener
     /**
      * Handle the event.
      */
+
+    //mark the processing number as skip, then get the new number
     public function handle(NumberSkip $event): void
     {
         try {

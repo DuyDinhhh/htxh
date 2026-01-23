@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import DeviceService from "../../services/deviceService";
 import { toast } from "react-toastify";
 
+// Pencil/edit SVG icon.
 function EditIcon({ className = "w-4 h-4" }) {
   return (
     <svg
@@ -20,6 +21,8 @@ function EditIcon({ className = "w-4 h-4" }) {
     </svg>
   );
 }
+
+// Trash/delete SVG icon.
 function TrashIcon({ className = "w-4 h-4" }) {
   return (
     <svg
@@ -38,6 +41,7 @@ function TrashIcon({ className = "w-4 h-4" }) {
   );
 }
 
+// Reusable action button that can be a Link or a button.
 function IconButton({ children, variant = "outline", to, onClick, title }) {
   const base =
     "inline-flex items-center justify-center p-2 rounded-md transition";
@@ -61,6 +65,7 @@ function IconButton({ children, variant = "outline", to, onClick, title }) {
   );
 }
 
+// Pagination control button.
 function PaginationButton({
   label,
   active = false,
@@ -96,6 +101,7 @@ function PaginationButton({
   );
 }
 
+// KPI card.
 const SummaryCard = ({ title, value, icon, bg = "bg-white" }) => {
   return (
     <div className={`flex-1 ${bg} rounded-lg p-4 shadow-sm border`}>
@@ -112,6 +118,7 @@ const SummaryCard = ({ title, value, icon, bg = "bg-white" }) => {
   );
 };
 
+// Devices list page logic (fetch, delete, pagination).
 const DeviceManagement = () => {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -131,6 +138,7 @@ const DeviceManagement = () => {
     to: 0,
   });
 
+  // Fetch paginated devices and quickview stats.
   const fetchDevices = async (page = 1) => {
     setLoading(true);
     try {
@@ -162,10 +170,12 @@ const DeviceManagement = () => {
     setLoading(false);
   };
 
+  // Initial data load.
   useEffect(() => {
     fetchDevices(pagination.current_page);
   }, []);
 
+  // Change page with bounds check.
   const handlePageChange = (newPage) => {
     if (
       newPage >= 1 &&
@@ -176,6 +186,7 @@ const DeviceManagement = () => {
     }
   };
 
+  // Build a page number window.
   const getPageNumbers = () => {
     const { current_page, last_page } = pagination;
     const maxPagesToShow = 5;
@@ -192,6 +203,7 @@ const DeviceManagement = () => {
     return pageNumbers;
   };
 
+  // Delete a device then refresh current page.
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa thiết bị này?")) return;
     try {
@@ -203,6 +215,7 @@ const DeviceManagement = () => {
     }
   };
 
+  // Format a date/time string for display.
   function formatDate(dt) {
     if (!dt) return "";
     const d = new Date(dt);

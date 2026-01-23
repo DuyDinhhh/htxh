@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    // change the password for dashboard user
     public function changePassword(ChangePasswordRequest $request, $id)
     {             
         $user = User::findOrFail($id);

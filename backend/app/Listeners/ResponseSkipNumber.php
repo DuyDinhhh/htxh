@@ -23,6 +23,7 @@ class ResponseSkipNumber
     /**
      * Handle the event.
      */
+    //response the skip number of this specific counter
     public function handle(NumberSkipRequest $event): void
     {
         try {

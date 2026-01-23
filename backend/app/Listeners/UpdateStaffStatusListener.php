@@ -20,6 +20,8 @@ class UpdateStaffStatusListener
     /**
      * Handle the event.
      */
+
+    // listen to mqtt and auto update the status of the feedback screen
     public function handle(StaffStatusReceived $event): void
     {
         try {

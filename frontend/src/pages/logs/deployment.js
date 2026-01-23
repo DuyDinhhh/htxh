@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import ActivityLogService from "../../services/activityLogService.js";
 import { toast } from "react-toastify";
 
+// Format a date/time string for display.
 function formatDate(dt) {
   if (!dt) return "-";
   const d = new Date(dt);
@@ -10,6 +11,7 @@ function formatDate(dt) {
   }/${d.getFullYear()}`;
 }
 
+// Pagination control button.
 function PaginationButton({
   label,
   active = false,
@@ -43,6 +45,7 @@ function PaginationButton({
   );
 }
 
+// Status badge.
 const Badge = ({ children, color = "gray" }) => (
   <span
     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-${color}-50 text-${color}-700`}
@@ -51,6 +54,7 @@ const Badge = ({ children, color = "gray" }) => (
   </span>
 );
 
+// Expandable/collapsible JSON pretty print.
 const RowJSON = ({ json }) => {
   const [open, setOpen] = useState(false);
   const pretty = useMemo(() => {
@@ -80,6 +84,7 @@ const RowJSON = ({ json }) => {
   );
 };
 
+// Deployment log page logic (fetch, filter, pagination).
 const DeploymentLog = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,6 +110,7 @@ const DeploymentLog = () => {
     to: 0,
   });
 
+  // Build API params from filters.
   const buildParams = () => ({
     log_name: logName || undefined,
     event: event || undefined,
@@ -119,6 +125,7 @@ const DeploymentLog = () => {
     per_page: pagination.per_page,
   });
 
+  // Fetch paginated deployment logs.
   const fetchLogs = async (page = 1) => {
     setLoading(true);
     try {
@@ -152,15 +159,18 @@ const DeploymentLog = () => {
     setLoading(false);
   };
 
+  // Initial data load.
   useEffect(() => {
     fetchLogs(1);
   }, []);
 
+  // Debounced reload on filter change.
   useEffect(() => {
     const t = setTimeout(() => fetchLogs(1), 250);
     return () => clearTimeout(t);
   }, [logName, event, causerType, causerId, dateFrom, dateTo, q, sort]);
 
+  // Build a page number window.
   const getPageNumbers = () => {
     const { current_page, last_page } = pagination;
     const max = 5;
@@ -175,6 +185,7 @@ const DeploymentLog = () => {
     return arr;
   };
 
+  // Change page with bounds check.
   const handlePageChange = (p) => {
     if (
       p >= 1 &&

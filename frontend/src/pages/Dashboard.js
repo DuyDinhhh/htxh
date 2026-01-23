@@ -2,6 +2,7 @@ import FeedbackChart from "../components/feedbackChart";
 import TicketComparisonChart from "../components/ticketComparisonChart";
 import TicketTrendChart from "../components/ticketTrendChart";
 
+// Dashboard page: shows ticket and feedback charts
 const Dashboard = () => {
   return (
     <div class="container px-6 mx-auto grid">

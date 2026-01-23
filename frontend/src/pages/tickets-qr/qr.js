@@ -8,6 +8,7 @@ import Header from "../../components/kiosk/header";
 import Footer from "../../components/kiosk/footer";
 
 const DEFAULT_BG = "#B3AAAA";
+// Validate hex color string
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -19,13 +20,16 @@ const normalizeHex = (val = "") => {
   }
   return v;
 };
+// Return normalized hex or fallback
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
+// Main QR code ticket generator component
 const QRCTicketGenerator = () => {
   const [url, setUrl] = useState("");
   const [countdown, setCountdown] = useState(30);
 
+  // Generate a new QR code URL and reset countdown
   const generateNewUrl = async () => {
     try {
       const response = await TicketService.generateNewUrl();
@@ -38,6 +42,7 @@ const QRCTicketGenerator = () => {
     }
   };
 
+  // Countdown timer for QR code refresh
   useEffect(() => {
     const countdownInterval = setInterval(() => {
       setCountdown((prevCountdown) => {
@@ -50,6 +55,7 @@ const QRCTicketGenerator = () => {
 
     return () => clearInterval(countdownInterval);
   }, []);
+  // Refresh QR code every 30 seconds
   useEffect(() => {
     generateNewUrl();
 
@@ -64,6 +70,7 @@ const QRCTicketGenerator = () => {
   const [config, setConfig] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
+  // Load kiosk config (colors, photo, texts)
   useEffect(() => {
     let mounted = true;
     const loadConfig = async () => {

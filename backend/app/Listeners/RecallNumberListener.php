@@ -21,6 +21,7 @@ class RecallNumberListener
         //
     }
 
+    // handle response the processing number of this device
     public function handle(NumberRecall $event): void
     {
         try {
@@ -64,7 +65,6 @@ class RecallNumberListener
                 $mqtt = MQTT::connection('publisher');
                 $mqtt->publish("responsenumber", json_encode($message));
                 $this->logMqttEvent('response', 'responsenumber', json_encode($message));
-
                 // $mqtt->publish("response-recall-number", json_encode($message));
                 $mqtt->disconnect();
             }

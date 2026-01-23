@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+// NotFound page: shows 404 and a link to home
 const NotFound = () => {
   return (
     <div class="container flex flex-col items-center px-6 mx-auto">

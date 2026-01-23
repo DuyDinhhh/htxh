@@ -36,6 +36,7 @@ class AuthController extends Controller
         ], 201);
     }
 
+    //login to dashboard
     public function login(Request $request)
     {
         $request->validate([
@@ -63,6 +64,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // logout of dashboard
     public function logout()
     {
         try {
@@ -74,6 +76,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Successfully logged out']);
     }
 
+    // get user detail
     public function getUser()
     {
         try {
@@ -106,6 +109,7 @@ class AuthController extends Controller
         }
     }
 
+    // pending, waiting for data from Kiosk 
     public function authenticate(AuthenticateRequest $request)
     {
         $adapterType = $request->adapter_type;

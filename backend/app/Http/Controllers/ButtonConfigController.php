@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class ButtonConfigController extends Controller
 {
+    //Get the config for kiosk getumber, queue list tv but ******** do not use anymore **********
     public function index()
     {
         $global = ButtonConfig::whereNull('service_id')->first();
@@ -22,7 +23,8 @@ class ButtonConfigController extends Controller
             ],
         ]);
     }
-
+    
+    //Get the config for kiosk getnumber, queue list tv but ******** do not use anymore **********
     public function save(Request $request)
     {
         $validated = $request->validate([

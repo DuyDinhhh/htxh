@@ -19,6 +19,7 @@ class RegisterDeviceListener
         //
     }
 
+    // create a new counter
     public function handle(DeviceRegister $event): void
     {
         $data = $event -> data;

@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 
 class QRCodeController extends Controller
 {
+    //provide the QR link to the frontend display, each link live state is 30s
     const QR_VALIDITY_DURATION = 30;
     public function generateNewQR()
     {
@@ -19,6 +20,7 @@ class QRCodeController extends Controller
         ]);
     }
 
+    // check the token of the link still valid or not
     public function validateQR(Request $request)
     {
         $token = $request->query('token');

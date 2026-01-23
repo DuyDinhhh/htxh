@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
+    //get list of ticket, allow fileter by service, device, status, datafrom, dateto, sort by created at
     public function index(Request $request){
         $today = Carbon::today()->format('Y-m-d'); 
 
@@ -76,6 +77,7 @@ class TicketController extends Controller
         ]);
     }
 
+    // create new ticket along with save data for the customer
     public function storeAuth(StoreTicketRequest $request, $id){
         $service = Service::with('devices')->findOrFail($id);
 
@@ -140,6 +142,7 @@ class TicketController extends Controller
         }
     }
 
+    //create new ticket without save data
     public function store($id){
         $service = Service::with('devices')->findOrFail($id);
 
@@ -195,6 +198,7 @@ class TicketController extends Controller
             ]);
         }
     }
+    //get ticket detail, for furture use
     public function show($id){
         $ticket = Ticket::with('device','service','customer')->findOrFail($id);
         if(!$ticket){
@@ -210,6 +214,7 @@ class TicketController extends Controller
         ]);
     }
 
+    //export ticket list
     public function export(Request $request)
     {
         ini_set('max_execution_time', 0);
@@ -269,6 +274,7 @@ class TicketController extends Controller
         return $this->downloadExcel($ticket_array, 'ticket.xlsx');  
     }
 
+    //auto download the exported tile
     protected function downloadExcel(array $data, string $filename = 'export.xlsx')
     {
         ini_set('max_execution_time', 0);

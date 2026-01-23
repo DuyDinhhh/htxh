@@ -13,6 +13,7 @@ const DEFAULT_BG = "#B3AAAA";
 const DEFAULT_HEADER_TEXT_COLOR = "#b10730";
 const DEFAULT_BUTTON_BG = "#8B4513";
 
+// Validate hex color string
 const isValidHex = (val = "") =>
   /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test((val || "").trim());
 const normalizeHex = (val = "") => {
@@ -24,9 +25,11 @@ const normalizeHex = (val = "") => {
   }
   return v;
 };
+// Return normalized hex or fallback
 const safeColor = (val, fallback) =>
   isValidHex(val) ? normalizeHex(val) : fallback;
 
+// Main QR ticket creation component
 const TicketCreateQR = () => {
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -49,6 +52,7 @@ const TicketCreateQR = () => {
   const token = queryParams.get("token");
 
   console.log(token);
+  // Validate QR token on mount
   useEffect(() => {
     if (!token) {
       navigate("/error");
@@ -76,6 +80,7 @@ const TicketCreateQR = () => {
     validateUrl();
   }, [token, navigate, number]);
 
+  // Load available services after validation
   useEffect(() => {
     if (!isValid || isValidating) return;
 
@@ -87,7 +92,7 @@ const TicketCreateQR = () => {
           (service) =>
             Array.isArray(service.devices) &&
             service.devices.length > 0 &&
-            !service.deleted_at
+            !service.deleted_at,
         );
         setServices(validServices || []);
       } catch (err) {
@@ -100,6 +105,7 @@ const TicketCreateQR = () => {
     fetchServices();
   }, [isValid, isValidating]);
 
+  // Load kiosk config (colors, photo, texts) after validation
   useEffect(() => {
     if (!isValid || isValidating) return;
 
@@ -171,6 +177,7 @@ const TicketCreateQR = () => {
   // Use useRef to store the debounced function
   const debouncedRegisterRef = useRef(null);
 
+  // Setup debounced register function
   useEffect(() => {
     debouncedRegisterRef.current = debounce(
       async (id) => {
@@ -182,20 +189,20 @@ const TicketCreateQR = () => {
             setServiceName(response.service);
             sessionStorage.setItem(
               "ticket_number",
-              response.ticket.ticket_number
+              response.ticket.ticket_number,
             );
           }
         } catch (err) {
           toast.error(
             err?.response?.data?.message || "Đăng ký số thứ tự thất bại.",
-            { autoClose: 500 }
+            { autoClose: 500 },
           );
         } finally {
           setRegistering((prev) => ({ ...prev, [id]: false }));
         }
       },
       700,
-      { leading: true, trailing: false }
+      { leading: true, trailing: false },
     );
 
     return () => {
@@ -203,6 +210,7 @@ const TicketCreateQR = () => {
     };
   }, []);
 
+  // Handler to trigger debounced register
   const handleRegister = useCallback((id) => {
     if (debouncedRegisterRef.current) {
       debouncedRegisterRef.current(id);

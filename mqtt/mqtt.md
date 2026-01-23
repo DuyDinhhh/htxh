@@ -41,7 +41,7 @@ sudo docker ps
 Access the container shell:
 
 ```bash
-sudo docker exec -it  sh
+sudo docker exec -it [container_id] sh
 ```
 
 Create the first user:

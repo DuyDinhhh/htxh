@@ -8,7 +8,12 @@ export const isAuthenticated = () => {
 // Get current user object from localStorage
 export const getUser = () => {
   const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+  if (!user) return null;
+  try {
+    return JSON.parse(user);
+  } catch (error) {
+    return null;
+  }
 };
 
 // Log out user and redirect to login page

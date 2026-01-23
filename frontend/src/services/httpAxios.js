@@ -1,9 +1,11 @@
 import axios from "axios";
 
 // Axios instance with base API URL and interceptors for auth and error handling
-const apiHost = window.location.host;
+const apiHost = window.location.hostname;
+const apiPort = "8000";
 const apiProtocol = window.location.protocol;
-let baseURL = `${apiProtocol}//${apiHost}/api/`;
+
+let baseURL = `${apiProtocol}//${apiHost}:${apiPort}/api/`;
 
 const httpAxios = axios.create({
   baseURL: baseURL,
@@ -51,10 +53,10 @@ export default httpAxios;
 // Helper to get full image URL for config photos
 export const getImageUrl = (photo) => {
   const apiProtocol = window.location.protocol;
-  const apiHost = window.location.host;
+  const apiHost = window.location.hostname;
 
   if (photo) {
-    return `${apiProtocol}//${apiHost}/images/config/${photo}`;
+    return `${apiProtocol}//${apiHost}:8000/images/config/${photo}`;
   }
   return null;
 };

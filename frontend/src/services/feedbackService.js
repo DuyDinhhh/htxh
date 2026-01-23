@@ -15,11 +15,14 @@ const FeedbackService = {
 
   // Export feedbacks as Excel file
   export: async (params = {}) => {
-    return await httpAxios.get("feedback/export", {
+    const token = localStorage.getItem("token");
+    return await axios.get("http://127.0.0.1:8000/api/feedback/export", {
       params,
       responseType: "blob",
+      headers: { Authorization: `Bearer ${token}` },
     });
   },
+
   // Get monthly feedback stats for a staff
   getMonthlyStats: async (staffId, month) => {
     return await httpAxios.get(`feedback/monthly-stats`, {
